@@ -1,0 +1,9 @@
+RESOURCES
+
+- https://www.youtube.com/watch?v=-MHhA-Y3DSk
+- https://pypi.org/project/yahoo-finance/
+- https://www.investopedia.com/articles/trading/06/daytradingretail.asp
+- https://www.investopedia.com/articles/active-trading/090415/only-take-trade-if-it-passes-5step-test.asp
+- https://github.com/RomelTorres/alpha_vantage
+- https://app.alpaca.markets/paper/dashboard/overview
+- Understand orders: https://alpaca.markets/docs/trading-on-alpaca/orders/
