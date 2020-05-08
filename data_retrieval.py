@@ -16,6 +16,8 @@ import pytz
 from alpha_vantage.timeseries import TimeSeries
 from alpha_vantage.techindicators import TechIndicators
 
+import supres as supres
+
 
 ### GLOBAL ENV ###
     # time
@@ -35,10 +37,18 @@ def get_candidate_equities(url):
     table = table[~table['PE Ratio (TTM)'].isna()]
     per_q1 = table['PE Ratio (TTM)'].quantile(0.25)
     per_q2 = table['PE Ratio (TTM)'].quantile(0.5)
-    table = table[table['PE Ratio (TTM)'] >= per_q1]
-    candidates_table = table[table['PE Ratio (TTM)'] <= per_q2]
+    q1q2 = table[table['PE Ratio (TTM)'] >= per_q1]
+    q1q2 = q1q2[q1q2['PE Ratio (TTM)'] <= per_q2]
 
-    candidates_table['% Change'] = [float(i[:-1]) for i in candidates_table['% Change']]
+    if len(q1q2) > 10:
+        candidates_table = q1q2
+    else:
+        candidates_table = table
+
+    tmp = candidates_table['% Change'].apply(lambda x: float(x[:-1])).values
+    candidates_table = candidates_table.drop(['% Change'], axis = 1)
+    candidates_table['% Change'] = tmp
+
     candidates_table.sort_values(by="% Change", ascending=False, inplace=True)
     candidates_table.reset_index(inplace=True, drop=True)
 
@@ -73,10 +83,30 @@ def is_data_available(data):
     return(boolean)
 
 
+def are_supres_appropriate(five_eq_symbols):
+    final_five_eq_symbols = []
+
+    for ticker in five_eq_symbols:
+        h = supres.get_hist_data(ticker)
+        try:
+            (minimaIdxs, pmin, mintrend, minwindows), (maximaIdxs, pmax, maxtrend, maxwindows) = trendln.calc_support_resistance(h, window=len(h), errpct=0.01, sortError=False, accuracy=1)
+            (best_sup, best_res) = supres.filter_best_supres(mintrend, maxtrend, h)
+            supres.plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res)
+            print("Write yes if it's it okay to keep", ticker)
+            x = input()
+            if x == 'yes':
+                final_five_eq_symbols.append(ticker)
+        except:
+            print("No suitable support nor resistance found")
+            pass
+
+    return(final_five_eq_symbols)
+
+
 def get_5_equities_data(candidates_table):
     five_eq_symbols = []
     five_eq_data = []
-    for i in range(0,5):
+    while len(five_eq_symbols) < 5:
         (top_gainer, candidates_table) = select_top_gainer(candidates_table)
         try:
             data = get_1_equity_data(top_gainer)
@@ -86,12 +116,28 @@ def get_5_equities_data(candidates_table):
         boolean = is_data_available(data)
         while boolean == False:
             print("No data available for ", top_gainer, ". We need to wait for 1min...", sep="")
-            time.sleep(60)
+            time.sleep(50)
             (top_gainer, candidates_table) = select_top_gainer(candidates_table)
             data = get_1_equity_data(top_gainer)
             boolean = is_data_available(data)
+
         five_eq_symbols.append(top_gainer)
         five_eq_data.append(data)
 
+    final_five_eq_symbols = are_supres_appropriate(five_eq_symbols)
+
     print("Done!")
-    return((five_eq_symbols, five_eq_data))
+    return((final_five_eq_symbols, five_eq_data))
+
+
+def update_5_equities_data(five_eq_symbols):
+    five_eq_data = []
+    for symbol in five_eq_symbols:
+        five_eq_data.append(get_1_equity_data(symbol))
+    print("Done!")
+    return(five_eq_data)
+
+
+url = 'https://finance.yahoo.com/gainers'
+candidates_table = get_candidate_equities(url)
+(five_eq_symbols, five_eq_data) = get_5_equities_data(candidates_table)

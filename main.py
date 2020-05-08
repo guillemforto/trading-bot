@@ -18,7 +18,6 @@ import requests
 from datetime import datetime
 from datetime import timedelta
 import time
-import pytz
 
 from matplotlib.pyplot import figure
 import matplotlib.pyplot as plt
@@ -36,7 +35,6 @@ import portfolio_management as pm
 
 ### GLOBAL ENV ###
     # time
-timezone = pytz.timezone("America/New_York")
 max_nb_requests_per_day = 500
 max_nb_requests_per_minute = 5
 
@@ -47,8 +45,9 @@ ti = TechIndicators(key=apikey)
 
 
 ### PARAMETERS ###
-capital_inicial = 1000
+init_capital = 1000
 nb_equities = 5
+portfolio = {}
 
 
 
@@ -75,25 +74,26 @@ def main():
         candidates_table = dr.get_candidate_equities(url)
         (five_eq_symbols, five_eq_data) = dr.get_5_equities_data(candidates_table)
 
-        portfolio = pm.create_portfolio(five_eq_symbols)
+        portfolio = prepare_portfolio_for_day(portfolio)
 
-        operate = tm.is_moment_to_retrieve(nyse_h, requests_frequency)
-        while operate == False:
+        retrieve = tm.is_moment_to_retrieve(nyse_h, requests_frequency)
+        while retrieve == False:
+            # next retrieval is in __ seconds...
             time.sleep(1)
-            operate = tm.is_moment_to_retrieve(nyse_h, requests_frequency)
-        else:
-            any_trades = False
-            print("GO")
-            operate = False
+            retrieve = tm.is_moment_to_retrieve(nyse_h, requests_frequency)
 
-            # update portfolio
-            if any_trades == True:
-                pm.add_purchase(portfolio)
-                pm.add_sale(portfolio)
+        five_eq_data = update_5_equities_data(five_eq_symbols)
+
+        # checking for new trading opportunities
+        if is_moment_to_buy(five_eq_data):
+            pm.add_purchase(symbol, portfolio)
+        elif is_moment_to_sell(five_eq_data):
+            pm.add_sale(symbol, portfolio)
 
         startTrading = tm.is_market_open(nyse_h)
 
     print("The day is ended!")
+    print("Profit / Loss:", compute_profit(portfolio))
 
 
 if __name__ == "__main__":

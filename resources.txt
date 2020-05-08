@@ -7,3 +7,17 @@ RESOURCES
 - https://github.com/RomelTorres/alpha_vantage
 - https://app.alpaca.markets/paper/dashboard/overview
 - Understand orders: https://alpaca.markets/docs/trading-on-alpaca/orders/
+
+- Botcrypto: https://botcrypto.io/#demo
+- Investopedia simulator: https://www.investopedia.com/simulator/?source=dfp-ros-sim&subid=dfp-ros-sim
+
+Investopedia articles
+- https://www.investopedia.com/terms/s/swinglow.asp
+- https://www.investopedia.com/terms/s/swinghigh.asp
+- https://www.investopedia.com/terms/s/swingtrading.asp
+- https://www.investopedia.com/terms/b/buy-limit-order.asp
+- https://www.investopedia.com/terms/t/trade-signal.asp
+
+Facebook prophet
+- https://www.statsmodels.org/stable/generated/statsmodels.tsa.seasonal.seasonal_decompose.html
+- https://facebook.github.io/prophet/docs/trend_changepoints.html

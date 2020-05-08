@@ -1,0 +1,123 @@
+########################################################
+################## SUPRES DETECTION ####################
+########################################################
+
+### IMPORTATION ###
+import numpy as np
+import pandas as pd
+import statistics
+import yfinance as yf # pip install yfinance
+import trendln
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
+import findiff
+
+
+
+### FUNCTIONS ###
+def abline(x_vals, slope, intercept):
+    """Plot a line from slope and intercept"""
+    y_vals = [intercept + slope * i for i in x_vals]
+    plt.plot(x_vals, y_vals, '--')
+
+
+def keep_halfLasting_supres(mintrend, maxtrend, h, lengthThreshold=40):
+    """Only keep the support and resistances which last for at least more than lengthThreshold% of the prices"""
+    longest_mintrends = [i for i in range(len(mintrend)) if (mintrend[i][0][-1] - mintrend[i][0][0])/len(h)*100 >= lengthThreshold]
+    longest_maxtrends = [j for j in range(len(maxtrend)) if (maxtrend[j][0][-1] - maxtrend[j][0][0])/len(h)*100 >= lengthThreshold]
+    candidates = [(i,j) for i in longest_mintrends for j in longest_maxtrends]
+
+    return(candidates)
+
+
+def keep_parallel_supres(mintrend, maxtrend, h):
+    """Only keep the support and resistances that never cross between 0 and len(h) + 30%"""
+    candidates = []
+    for i in range(len(mintrend)):
+        intercept_min = mintrend[i][1][1]
+        slope_min = mintrend[i][1][0]
+        y_min = [intercept_min + slope_min * k for k in range(len(h) + int(len(h)/100*30))]
+
+        for j in range(len(maxtrend)):
+            intercept_max = maxtrend[j][1][1]
+            slope_max = maxtrend[j][1][0]
+            y_max = [intercept_max + slope_max * k for k in range(len(h) + int(len(h)/100*30))]
+
+            if all([y_min[i] < y_max[i] for i in range(len(y_min))]):
+                candidates.append((i,j))
+
+    return(candidates)
+
+
+def keep_similarPeriod_supres(mintrend, maxtrend):
+    """Only keep the support and resistances which have at least commpct% of their length in common"""
+    candidates = []
+    for i in range(len(mintrend)):
+        supp = [k for k in range(mintrend[i][0][0], mintrend[i][0][-1] + 1)]
+        for j in range(len(maxtrend)):
+            res = [k for k in range(maxtrend[j][0][0], maxtrend[j][0][-1] + 1)]
+            inter = list(set(supp) & set(res))
+            if inter != [] and (len(inter) >= (len(supp)/2) or len(inter) >= (len(res)/2)):
+                candidates.append((i,j))
+
+    return(candidates)
+
+
+def keep_recent_supres(mintrend, maxtrend, h, pct_threshold=70):
+    """Only keep the support and resistances whose last point is in the last pct_threshold%"""
+    candidates = []
+    last_third = len(h) / 100 * pct_threshold
+    for i in range(len(mintrend)):
+        for j in range(len(maxtrend)):
+            if mintrend[i][0][-1] >= last_third and maxtrend[j][0][-1] >= last_third:
+                candidates.append((i,j))
+
+    return(candidates)
+
+
+def keep_lowerRiemann_supres(best_candidates, mintrend, maxtrend):
+    l = [i[0] + i[1] for i in best_candidates]
+    a = l.index(min(l))
+    print("top:", best_candidates[a])
+
+    return((mintrend[best_candidates[a][0]], maxtrend[best_candidates[a][1]]))
+
+
+def filter_best_supres(mintrend, maxtrend, h):
+    mintrend, maxtrend = mintrend[:10], maxtrend[:10]
+    candidates0 = keep_halfLasting_supres(mintrend, maxtrend, h, lengthThreshold=35)
+    candidates1 = keep_parallel_supres(mintrend, maxtrend, h)
+    candidates2 = keep_similarPeriod_supres(mintrend, maxtrend)
+    candidates3 = keep_recent_supres(mintrend, maxtrend, h, pct_threshold=65)
+    best_candidates = list(set(candidates0) & set(candidates1) & set(candidates2) & set(candidates3))
+    (a,b) = keep_lowerRiemann_supres(best_candidates, mintrend, maxtrend)
+    return((a, b))
+
+
+def plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res):
+    figure(num=None, figsize=(10, 8), dpi=80, facecolor='w', edgecolor='k')
+    plt.plot(h, color="black")
+
+    # dots
+    mins = [h[i] for i in minimaIdxs]
+    maxs = [h[i] for i in maximaIdxs]
+    plt.plot(minimaIdxs, mins, linestyle='', marker='o', color='chartreuse')
+    plt.plot(maximaIdxs, maxs, linestyle='', marker='o', color='b')
+
+    # trendlines
+    x1 = best_sup[0]
+    x1.append(len(h) + int(len(h)/100*30))
+    x2 = best_res[0]
+    x2.append(len(h) + int(len(h)/100*30))
+    abline(x1, best_sup[1][0], best_sup[1][1])
+    abline(x2, best_res[1][0], best_res[1][1])
+    plt.show()
+
+
+def get_hist_data(ticker):
+    tick = yf.Ticker(ticker)
+    hist = tick.history(period="max", rounding=True)
+    hist = hist[-250:]
+    h = hist.Close.tolist()
+    return(h)
