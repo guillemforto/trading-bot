@@ -35,8 +35,8 @@ import portfolio_management as pm
 
 ### GLOBAL ENV ###
     # time
-max_nb_requests_per_day = 500
-max_nb_requests_per_minute = 5
+# max_nb_requests_per_day = 400
+# max_nb_requests_per_minute = 5
 
     # alphavantage api
 apikey = '0FA4MXDSORI7KI96'
@@ -74,9 +74,9 @@ def main():
 
         print("First of all, let's pick the equities we will be trading.")
         candidates_table = dr.get_candidate_equities(url)
-        (five_eq_symbols, five_eq_data) = dr.get_5_equities_data(candidates_table)
+        (five_eq_symbols, five_eq_data, five_eq_supres) = dr.get_5_equities_data(candidates_table)
 
-        portfolio = prepare_portfolio_for_day(portfolio)
+        portfolio = prepare_portfolio(portfolio)
 
         retrieve = tm.is_moment_to_retrieve(nyse_h, requests_frequency)
         while retrieve == False:
@@ -87,10 +87,13 @@ def main():
         five_eq_data = update_5_equities_data(five_eq_symbols)
 
         # checking for new trading opportunities
-        if is_moment_to_buy(five_eq_data):
-            pm.add_purchase(symbol, portfolio)
-        elif is_moment_to_sell(five_eq_data):
-            pm.add_sale(symbol, portfolio)
+        booleans = is_moment_to_golong(five_eq_symbols, five_eq_data, five_eq_supres)
+        if any(booleans):
+            pm.add_purchases(portfolio, booleans, five_eq_symbols, five_eq_data)
+
+        booleans = is_moment_to_coverlong(five_eq_symbols, five_eq_data, five_eq_supres)
+        if any(booleans):
+            pm.add_sales(portfolio, booleans, five_eq_symbols, five_eq_data)
 
         startTrading = tm.is_market_open(nyse_h)
 

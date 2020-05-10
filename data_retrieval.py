@@ -102,6 +102,15 @@ def is_supres_appropriate(symbol):
     return(boolean)
 
 
+def get_supres(symbol):
+    h = supres.get_hist_data(symbol)
+    (minimaIdxs, pmin, mintrend, minwindows), (maximaIdxs, pmax, maxtrend, maxwindows) = trendln.calc_support_resistance(h, window=len(h), errpct=0.01, sortError=False, accuracy=1)
+    (best_sup, best_res) = supres.filter_best_supres(mintrend, maxtrend, h)
+    # sup_slope, sup_intercept, res_slope, res_intercept
+    return((best_sup[1][0], best_sup[1][1], best_res[1][0], best_res[1][1]))
+
+
+
 def get_5_equities_data(candidates_table):
     five_eq_symbols = []
     five_eq_data = []
@@ -116,19 +125,18 @@ def get_5_equities_data(candidates_table):
         boolean = is_data_available(data)
         if boolean == False:
             print("No intraday data available for ", top_gainer, ". Please wait a minute...", sep="")
-            time.sleep(30)
             boolean2 = False
         else:
             print("Intraday data is available for", top_gainer)
             boolean2 = is_supres_appropriate(top_gainer)
 
         while boolean == False or boolean2 == False:
+            time.sleep(30)
             (top_gainer, candidates_table) = select_top_gainer(candidates_table)
             data = get_1_equity_data(top_gainer)
             boolean = is_data_available(data)
             if boolean == False:
                 print("No intraday data available for ", top_gainer, ". Please wait a minute...", sep="")
-                time.sleep(30)
                 boolean2 = False
             else:
                 print("Intraday data is available for", top_gainer)
@@ -141,8 +149,13 @@ def get_5_equities_data(candidates_table):
     else:
         print('No stocks left in the candidates table. The final list is:', five_eq_symbols)
 
+    five_eq_supres = []
+    for symbol in five_eq_symbols:
+        five_eq_supres.append(get_supres(symbol))
+
     print('Done!')
-    return((five_eq_symbols, five_eq_data))
+    return((five_eq_symbols, five_eq_data, five_eq_supres))
+
 
 
 def update_5_equities_data(five_eq_symbols):

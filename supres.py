@@ -94,8 +94,8 @@ def filter_best_supres(mintrend, maxtrend, h):
     candidates2 = keep_similarPeriod_supres(mintrend, maxtrend)
     candidates3 = keep_recent_supres(mintrend, maxtrend, h, pct_threshold=65)
     best_candidates = list(set(candidates0) & set(candidates1) & set(candidates2) & set(candidates3))
-    (a,b) = keep_lowerRiemann_supres(best_candidates, mintrend, maxtrend)
-    return((a, b))
+    (best_sup, best_res) = keep_lowerRiemann_supres(best_candidates, mintrend, maxtrend)
+    return((best_sup, best_res))
 
 
 def abline(x_vals, slope, intercept):

@@ -17,7 +17,7 @@ import math
 ### GLOBAL ENV ###
 nb_equities = 5
 timezone = pytz.timezone("America/New_York")
-max_nb_requests_per_day = 500
+max_nb_requests_per_day = 400
 max_nb_requests_per_minute = 5
 
 
@@ -31,7 +31,7 @@ def get_next_trading_hours():
     boolean = True
     if ny_now.weekday() in holidays.WEEKEND:
         print("Today is ", calendar.day_name[ny_now.weekday()], " the ",
-        ny_now.day, "th. Markets are closed.", sep="")
+        ny_now.day, "th, New York timezone. Markets are closed.", sep="")
     elif ny_now in holidays_us:
         print("Today is a holiday. Markets are closed.")
     else:
@@ -73,7 +73,9 @@ def is_market_open(nyse_h):
 
 def get_secs_till_op(nyse_h):
     ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
-    secs_till_op = (nyse_h[0] - ny_now).seconds
+    days_till_op = (nyse_h[0] - ny_now).days * 24 * 60 * 60
+    secs_till_op = days_till_op + (nyse_h[0] - ny_now).seconds
+
     time_till_op = round((secs_till_op / 60) / 60, 2)
     hours_till_op = int(time_till_op)
     minutes_till_op = int((time_till_op - hours_till_op) * 60)
