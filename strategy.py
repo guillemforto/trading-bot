@@ -5,8 +5,6 @@
 ### IMPORTATION ###
 import sys
 import os
-
-sys.path.append(os.path.abspath("/Users/guillemforto/Desktop/trading_bot/trading_strategy/pattern_detection.py"))
 import pattern_detection as patdet
 
 ### GLOBAL ENV ###

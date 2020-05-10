@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import statistics
 import yfinance as yf # pip install yfinance
-import trendln
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
@@ -16,10 +15,12 @@ import findiff
 
 
 ### FUNCTIONS ###
-def abline(x_vals, slope, intercept):
-    """Plot a line from slope and intercept"""
-    y_vals = [intercept + slope * i for i in x_vals]
-    plt.plot(x_vals, y_vals, '--')
+def get_hist_data(ticker):
+    tick = yf.Ticker(ticker)
+    hist = tick.history(period="max", rounding=True)
+    hist = hist[-250:]
+    h = hist.Close.tolist()
+    return(h)
 
 
 def keep_halfLasting_supres(mintrend, maxtrend, h, lengthThreshold=40):
@@ -32,17 +33,19 @@ def keep_halfLasting_supres(mintrend, maxtrend, h, lengthThreshold=40):
 
 
 def keep_parallel_supres(mintrend, maxtrend, h):
-    """Only keep the support and resistances that never cross between 0 and len(h) + 30%"""
+    """Only keep the support and resistances that never cross between [len(h) +- 30%]"""
     candidates = []
+    margin = int(len(h)/100*30)
+
     for i in range(len(mintrend)):
         intercept_min = mintrend[i][1][1]
         slope_min = mintrend[i][1][0]
-        y_min = [intercept_min + slope_min * k for k in range(len(h) + int(len(h)/100*30))]
+        y_min = [intercept_min + slope_min * k for k in range(- margin, len(h) + margin)]
 
         for j in range(len(maxtrend)):
             intercept_max = maxtrend[j][1][1]
             slope_max = maxtrend[j][1][0]
-            y_max = [intercept_max + slope_max * k for k in range(len(h) + int(len(h)/100*30))]
+            y_max = [intercept_max + slope_max * k for k in range(- margin, len(h) + margin)]
 
             if all([y_min[i] < y_max[i] for i in range(len(y_min))]):
                 candidates.append((i,j))
@@ -77,11 +80,11 @@ def keep_recent_supres(mintrend, maxtrend, h, pct_threshold=70):
 
 
 def keep_lowerRiemann_supres(best_candidates, mintrend, maxtrend):
-    l = [i[0] + i[1] for i in best_candidates]
-    a = l.index(min(l))
-    print("top:", best_candidates[a])
-
-    return((mintrend[best_candidates[a][0]], maxtrend[best_candidates[a][1]]))
+    if best_candidates != []:
+        l = [i[0] + i[1] for i in best_candidates]
+        a = l.index(min(l))
+        print("top:", best_candidates[a])
+        return((mintrend[best_candidates[a][0]], maxtrend[best_candidates[a][1]]))
 
 
 def filter_best_supres(mintrend, maxtrend, h):
@@ -95,6 +98,12 @@ def filter_best_supres(mintrend, maxtrend, h):
     return((a, b))
 
 
+def abline(x_vals, slope, intercept):
+    """Plot a line from slope and intercept"""
+    y_vals = [intercept + slope * i for i in x_vals]
+    plt.plot(x_vals, y_vals, '--')
+
+
 def plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res):
     figure(num=None, figsize=(10, 8), dpi=80, facecolor='w', edgecolor='k')
     plt.plot(h, color="black")
@@ -106,18 +115,32 @@ def plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res):
     plt.plot(maximaIdxs, maxs, linestyle='', marker='o', color='b')
 
     # trendlines
+    margin = int(len(h)/100*30)
     x1 = best_sup[0]
-    x1.append(len(h) + int(len(h)/100*30))
+    x1.append(len(h) + margin)
+    x1.insert(0, - margin)
     x2 = best_res[0]
-    x2.append(len(h) + int(len(h)/100*30))
+    x2.append(len(h) + margin)
+    x2.insert(0, - margin)
     abline(x1, best_sup[1][0], best_sup[1][1])
     abline(x2, best_res[1][0], best_res[1][1])
     plt.show()
 
 
-def get_hist_data(ticker):
-    tick = yf.Ticker(ticker)
-    hist = tick.history(period="max", rounding=True)
-    hist = hist[-250:]
-    h = hist.Close.tolist()
-    return(h)
+# ticker = 'DISH'
+# h = get_hist_data(ticker)
+# print("We entered this for", ticker)
+# (minimaIdxs, pmin, mintrend, minwindows), (maximaIdxs, pmax, maxtrend, maxwindows) = trendln.calc_support_resistance(h, window=len(h), errpct=0.01, sortError=False, accuracy=1)
+# print("We reached this for", ticker)
+# try:
+#     (best_sup, best_res) = filter_best_supres(mintrend, maxtrend, h)
+#     plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res)
+#     print("Write yes if it's it okay to keep", ticker)
+#     x = input()
+#     if x == 'yes':
+#         final_five_eq_symbols.append(ticker)
+#         print(final_five_eq_symbols)
+#     else:
+#         print(final_five_eq_symbols)
+# except:
+#     print("No suitable support / resistance found for", ticker)

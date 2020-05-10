@@ -17,6 +17,7 @@ from alpha_vantage.timeseries import TimeSeries
 from alpha_vantage.techindicators import TechIndicators
 
 import supres as supres
+import trendln
 
 
 ### GLOBAL ENV ###
@@ -67,7 +68,8 @@ def get_1_equity_data(symbol):
     data, meta_data = ts.get_intraday(symbol=symbol, interval='1min', outputsize='full')
     data.sort_index(inplace=True)
     ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
-    data = data[data.index.day == ny_now.day] # subset to intraday prices
+    data = data[data.index.day == 8] # subset to intraday prices
+    #data = data[data.index.day == ny_now.day] # subset to intraday prices
     return(data)
 
 
@@ -78,56 +80,69 @@ def is_data_available(data):
         boolean = False
     else:
         set_of_days = list(data[~data.index.day.duplicated()].index.day)
-        if (ny_now.day not in set_of_days):
+        if (8 not in set_of_days): # (ny_now.day not in set_of_days)
             boolean = False
     return(boolean)
 
 
-def are_supres_appropriate(five_eq_symbols):
-    final_five_eq_symbols = []
+def is_supres_appropriate(symbol):
+    boolean = False
+    h = supres.get_hist_data(symbol)
+    (minimaIdxs, pmin, mintrend, minwindows), (maximaIdxs, pmax, maxtrend, maxwindows) = trendln.calc_support_resistance(h, window=len(h), errpct=0.01, sortError=False, accuracy=1)
+    try:
+        (best_sup, best_res) = supres.filter_best_supres(mintrend, maxtrend, h)
+        supres.plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res)
+        print("Is it okay to keep 'y' if it's it okay to keep", symbol, '?')
+        x = input("[y/n]: ")
+        if x == 'y' or x == 'Y':
+            boolean = True
+    except:
+        print("No suitable support / resistance found for", symbol)
 
-    for ticker in five_eq_symbols:
-        h = supres.get_hist_data(ticker)
-        try:
-            (minimaIdxs, pmin, mintrend, minwindows), (maximaIdxs, pmax, maxtrend, maxwindows) = trendln.calc_support_resistance(h, window=len(h), errpct=0.01, sortError=False, accuracy=1)
-            (best_sup, best_res) = supres.filter_best_supres(mintrend, maxtrend, h)
-            supres.plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res)
-            print("Write yes if it's it okay to keep", ticker)
-            x = input()
-            if x == 'yes':
-                final_five_eq_symbols.append(ticker)
-        except:
-            print("No suitable support nor resistance found")
-            pass
-
-    return(final_five_eq_symbols)
+    return(boolean)
 
 
 def get_5_equities_data(candidates_table):
     five_eq_symbols = []
     five_eq_data = []
-    while len(five_eq_symbols) < 5:
+    while len(five_eq_symbols) < 5 and len(candidates_table) > 0:
         (top_gainer, candidates_table) = select_top_gainer(candidates_table)
         try:
             data = get_1_equity_data(top_gainer)
         except:
             data = pd.DataFrame({})
 
+
         boolean = is_data_available(data)
-        while boolean == False:
-            print("No data available for ", top_gainer, ". We need to wait for 1min...", sep="")
-            time.sleep(50)
+        if boolean == False:
+            print("No intraday data available for ", top_gainer, ". Please wait a minute...", sep="")
+            time.sleep(30)
+            boolean2 = False
+        else:
+            print("Intraday data is available for", top_gainer)
+            boolean2 = is_supres_appropriate(top_gainer)
+
+        while boolean == False or boolean2 == False:
             (top_gainer, candidates_table) = select_top_gainer(candidates_table)
             data = get_1_equity_data(top_gainer)
             boolean = is_data_available(data)
+            if boolean == False:
+                print("No intraday data available for ", top_gainer, ". Please wait a minute...", sep="")
+                time.sleep(30)
+                boolean2 = False
+            else:
+                print("Intraday data is available for", top_gainer)
+                boolean2 = is_supres_appropriate(top_gainer)
 
         five_eq_symbols.append(top_gainer)
         five_eq_data.append(data)
+        print('Ticker added to the list:', five_eq_symbols)
 
-    final_five_eq_symbols = are_supres_appropriate(five_eq_symbols)
+    else:
+        print('No stocks left in the candidates table. The final list is:', five_eq_symbols)
 
-    print("Done!")
-    return((final_five_eq_symbols, five_eq_data))
+    print('Done!')
+    return((five_eq_symbols, five_eq_data))
 
 
 def update_5_equities_data(five_eq_symbols):
@@ -136,8 +151,3 @@ def update_5_equities_data(five_eq_symbols):
         five_eq_data.append(get_1_equity_data(symbol))
     print("Done!")
     return(five_eq_data)
-
-
-url = 'https://finance.yahoo.com/gainers'
-candidates_table = get_candidate_equities(url)
-(five_eq_symbols, five_eq_data) = get_5_equities_data(candidates_table)

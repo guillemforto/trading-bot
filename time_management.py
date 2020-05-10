@@ -77,7 +77,8 @@ def get_secs_till_op(nyse_h):
     time_till_op = round((secs_till_op / 60) / 60, 2)
     hours_till_op = int(time_till_op)
     minutes_till_op = int((time_till_op - hours_till_op) * 60)
-    print("Market opens in", hours_till_op, "hours,", minutes_till_op, "minutes...")
+    print("Market opens in", hours_till_op, "hours,", minutes_till_op, "minutes.")
+    print("We will wait till then before starting.")
     return(secs_till_op)
 
 

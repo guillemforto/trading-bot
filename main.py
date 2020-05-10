@@ -45,6 +45,7 @@ ti = TechIndicators(key=apikey)
 
 
 ### PARAMETERS ###
+url = 'https://finance.yahoo.com/gainers?count=100&offset=0'
 init_capital = 1000
 nb_equities = 5
 portfolio = {}
@@ -54,6 +55,7 @@ portfolio = {}
 
 ### MAIN ###
 def main():
+    print("\n \n                  WELCOME TO GUILLEM'S TRADING BOT! \n \n")
     # PRE-TRADING
     nyse_h = tm.get_next_trading_hours()
     requests_frequency = tm.get_requests_frequency(nyse_h)
@@ -70,7 +72,7 @@ def main():
         print("Market is open! Waiting 30 seconds before starting...")
         time.sleep(30)
 
-        url = 'https://finance.yahoo.com/gainers'
+        print("First of all, let's pick the equities we will be trading.")
         candidates_table = dr.get_candidate_equities(url)
         (five_eq_symbols, five_eq_data) = dr.get_5_equities_data(candidates_table)
 
