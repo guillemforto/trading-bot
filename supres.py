@@ -83,7 +83,6 @@ def keep_lowerRiemann_supres(best_candidates, mintrend, maxtrend):
     if best_candidates != []:
         l = [i[0] + i[1] for i in best_candidates]
         a = l.index(min(l))
-        print("top:", best_candidates[a])
         return((mintrend[best_candidates[a][0]], maxtrend[best_candidates[a][1]]))
 
 

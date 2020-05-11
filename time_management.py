@@ -89,6 +89,7 @@ def is_moment_to_retrieve(nyse_h, requests_frequency):
     ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
     secs_since_op = (ny_now - nyse_h[0]).seconds
     secs_till_retrieval = requests_frequency - (secs_since_op % requests_frequency)
-    if secs_till_retrieval != 234: print(secs_till_retrieval, "seconds till next retrieval")
+    if (secs_till_retrieval % 5 == 0.0) and (secs_till_retrieval != requests_frequency):
+        print(secs_till_retrieval, "seconds till next retrieval")
     boolean = secs_since_op % requests_frequency == 0.0
     return(boolean)

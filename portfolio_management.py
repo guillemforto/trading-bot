@@ -21,7 +21,7 @@ def prepare_portfolio(portfolio):
 
 def add_purchase(portfolio, index, five_eq_symbols, five_eq_data):
     symbol = five_eq_symbols[index]
-    print("Buying", symbol)
+    print("\nBuying", symbol)
     eq_data = five_eq_data[index].tail(1)
 
     # get the stock state using the symbol
@@ -32,6 +32,7 @@ def add_purchase(portfolio, index, five_eq_symbols, five_eq_data):
                     'open':     eq_data['1. open'][0],
                     'volume':   eq_data['5. volume'][0]
     }
+    print("Closing price at which we buy:", stock_state['close'], '\n')
 
     # how many times have we traded this stock
     tmp = portfolio[portname]['bought']
@@ -49,7 +50,7 @@ def add_purchase(portfolio, index, five_eq_symbols, five_eq_data):
 
 def add_sale(portfolio, index, five_eq_symbols, five_eq_data):
     symbol = five_eq_symbols[index]
-    print("Selling", symbol)
+    print("\nSelling", symbol)
     eq_data = five_eq_data[index].tail(1)
 
     # get the stock state using the symbol
@@ -60,6 +61,7 @@ def add_sale(portfolio, index, five_eq_symbols, five_eq_data):
                     'open':     eq_data['1. open'][0],
                     'volume':   eq_data['5. volume'][0]
     }
+    print("Closing price at which we sell:", stock_state['close'], '\n')
 
     # how many times have we traded this stock
     tmp = portfolio[portname]['sold']
