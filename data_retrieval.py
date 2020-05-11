@@ -63,12 +63,8 @@ def select_top_gainer(candidates_table):
     return((top_gainer, top_gainer_name, candidates_table))
 
 
-def get_1_equity_data(symbol, symbol_name=''):
-    if symbol_name == '':
-        print("Updating data for ", symbol, sep="")
-    else:
-        print("Trying to get data for ", symbol, ' - ', symbol_name, sep="")
-
+def get_1_equity_data(symbol):
+    print("Trying to get/update data for ", symbol)
     data, meta_data = ts.get_intraday(symbol=symbol, interval='1min', outputsize='full')
     data.sort_index(inplace=True)
     ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
@@ -89,7 +85,7 @@ def is_data_available(data):
     return(boolean)
 
 
-def is_supres_appropriate(symbol):
+def is_there_appropriate_supres(symbol):
     boolean = False
     h = supres.get_hist_data(symbol)
     (minimaIdxs, pmin, mintrend, minwindows), (maximaIdxs, pmax, maxtrend, maxwindows) = trendln.calc_support_resistance(h, window=len(h), errpct=0.01, sortError=False, accuracy=1)
@@ -102,7 +98,7 @@ def is_supres_appropriate(symbol):
         if x == 'y' or x == 'Y':
             boolean = True
     except:
-        print("No suitable support / resistance found for", symbol, '\n')
+        print("No suitable support / resistance found for", symbol)
 
     return(boolean)
 
@@ -115,50 +111,81 @@ def get_supres(symbol):
     return((best_sup[1][0], best_sup[1][1], best_res[1][0], best_res[1][1]))
 
 
-
 def get_5_equities_data(candidates_table):
     five_eq_symbols = []
     five_eq_data = []
     while len(five_eq_symbols) < 5:
-
-        (top_gainer, top_gainer_name, candidates_table) = select_top_gainer(candidates_table)
-        try:
-            data = get_1_equity_data(top_gainer, top_gainer_name)
-        except:
-            data = pd.DataFrame({})
-
-
-        boolean = is_data_available(data)
-        if boolean == False:
-            print("No intraday data available for ", top_gainer, ". Please wait a minute...", sep="")
-            boolean2 = False
-        else:
-            print("Intraday data is available for", top_gainer)
-            boolean2 = is_supres_appropriate(top_gainer)
-
-        while boolean == False or boolean2 == False:
-            time.sleep(30)
-            (top_gainer, top_gainer_name, candidates_table) = select_top_gainer(candidates_table)
-            data = get_1_equity_data(top_gainer, top_gainer_name)
-            boolean = is_data_available(data)
-            if boolean == False:
-                print("No intraday data available for ", top_gainer, ". Please wait a minute...", sep="")
-                boolean2 = False
-            else:
-                print("Intraday data is available for", top_gainer)
-                boolean2 = is_supres_appropriate(top_gainer)
-
-            if len(candidates_table) == 0:
-                print('\nNo stocks left in the candidates table.')
-                break
-
-        five_eq_symbols.append(top_gainer)
-        five_eq_data.append(data)
-        print('\nTicker added to the list:', five_eq_symbols, '\n')
-
         if len(candidates_table) == 0:
             print('\nNo stocks left in the candidates table.')
             break
+        else:
+            print('\n', len(candidates_table), 'stocks left in the candidates table.')
+
+        (top_gainer, top_gainer_name, candidates_table) = select_top_gainer(candidates_table)
+        print("\nSymbol:", top_gainer, '-', top_gainer_name)
+
+        bool1 = is_there_appropriate_supres(top_gainer)
+        if not bool1:
+            continue
+        else:
+            try:
+                data = get_1_equity_data(top_gainer)
+            except:
+                data = pd.DataFrame({})
+            bool2 = is_data_available(data)
+            if not bool2:
+                print("No intraday data available for ", top_gainer, sep="")
+                time.sleep(10)
+                continue
+            else:
+                print('Intraday data is available for ', top_gainer, '!', sep='')
+                five_eq_symbols.append(top_gainer)
+                five_eq_data.append(data)
+                print('\nTicker added to the list:', five_eq_symbols)
+
+
+    # while len(five_eq_symbols) < 5:
+    #     (top_gainer, top_gainer_name, candidates_table) = select_top_gainer(candidates_table)
+    #     try:
+    #         data = get_1_equity_data(top_gainer, top_gainer_name)
+    #     except:
+    #         data = pd.DataFrame({})
+    #
+    #
+    #     boolean = is_data_available(data)
+    #     if boolean == False:
+    #         print("No intraday data available for ", top_gainer, ". Please wait a minute...", sep="")
+    #         boolean2 = False
+    #     else:
+    #         print("Intraday data is available for", top_gainer)
+    #         boolean2 = is_there_appropriate_supres(top_gainer)
+    #
+    #     while boolean == False or boolean2 == False:
+    #         time.sleep(30)
+    #         (top_gainer, top_gainer_name, candidates_table) = select_top_gainer(candidates_table)
+    #         try:
+    #             data = get_1_equity_data(top_gainer, top_gainer_name)
+    #         except:
+    #             data = pd.DataFrame({})
+    #         boolean = is_data_available(data)
+    #         if boolean == False:
+    #             print("No intraday data available for ", top_gainer, ". Please wait a minute...", sep="")
+    #             boolean2 = False
+    #         else:
+    #             print("Intraday data is available for", top_gainer)
+    #             boolean2 = is_there_appropriate_supres(top_gainer)
+    #
+    #         if len(candidates_table) == 0:
+    #             print('\nNo stocks left in the candidates table.')
+    #             break
+    #
+    #     five_eq_symbols.append(top_gainer)
+    #     five_eq_data.append(data)
+    #     print('\nTicker added to the list:', five_eq_symbols)
+    #
+    #     if len(candidates_table) == 0:
+    #         print('\nNo stocks left in the candidates table.')
+    #         break
 
     # Getting support and resistances
     five_eq_supres = []

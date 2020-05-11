@@ -60,19 +60,29 @@ def main():
     requests_frequency = tm.get_requests_frequency(nyse_h)
     startTrading = tm.is_market_open(nyse_h)
 
-    if startTrading == False:
+    firstEntrance = True
+    while startTrading == False:
         secs_till_op = tm.get_secs_till_op(nyse_h)
-        time.sleep(secs_till_op)
-        startTrading = True
+        time_till_op = round((secs_till_op / 60) / 60, 2)
+        hours_till_op = int(time_till_op)
+        minutes_till_op = int((time_till_op - hours_till_op) * 60)
+        if firstEntrance == True:
+            print("Market opens in", hours_till_op, "hours,", minutes_till_op, "minutes.")
+            print("We will wait till then before starting.")
+            firstEntrance = False
+        if secs_till_op % 300 == 0 and secs_till_op != 0:
+            print(hours_till_op, ':', minutes_till_op, ' to go', sep='')
+        time.sleep(1)
+        startTrading = secs_till_op == 0
 
 
     ### TRADING ###
     while startTrading:
         ### PREPARATION ###
-        print("Market is open! Waiting 30 seconds before starting...\n")
-        time.sleep(30)
+        print("Market is open! Waiting 120 seconds before starting...\n")
+        # time.sleep(120)
 
-        print("First of all, let's pick the equities we will be looking at:\n")
+        print("First of all, let's pick the equities we will be looking at:")
         candidates_table = dr.get_candidate_equities(url)
         (five_eq_symbols, five_eq_data, five_eq_supres) = dr.get_5_equities_data(candidates_table)
 
@@ -94,11 +104,17 @@ def main():
             booleans = strat.is_moment_to_golong(five_eq_symbols, five_eq_data, five_eq_supres, portfolio)
             if any(booleans):
                 pm.add_purchases(portfolio, booleans, five_eq_symbols, five_eq_data)
+                print("Our current profit / loss is:", pm.compute_profit(portfolio), '€')
+            else:
+                print('Nothing to buy.')
 
             booleans = strat.is_moment_to_coverlong(five_eq_symbols, five_eq_data, five_eq_supres, portfolio)
             if any(booleans):
                 pm.add_sales(portfolio, booleans, five_eq_symbols, five_eq_data)
-                print("Our current profit / loss is:", pm.compute_profit(portfolio), '\n')
+                print("Our current profit / loss is:", pm.compute_profit(portfolio), '€')
+            else:
+                print("Nothing to sell.")
+            print("Done!\n")
 
             action = tm.is_market_open(nyse_h)
 

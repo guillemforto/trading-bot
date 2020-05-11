@@ -13,7 +13,6 @@ from matplotlib.pyplot import figure
 import findiff
 
 
-
 ### FUNCTIONS ###
 def get_hist_data(ticker):
     tick = yf.Ticker(ticker)
