@@ -102,7 +102,7 @@ def abline(x_vals, slope, intercept):
     plt.plot(x_vals, y_vals, '--')
 
 
-def plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res):
+def plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res, symbol):
     figure(num=None, figsize=(10, 8), dpi=80, facecolor='w', edgecolor='k')
     plt.plot(h, color="black")
 
@@ -111,6 +111,11 @@ def plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res):
     maxs = [h[i] for i in maximaIdxs]
     plt.plot(minimaIdxs, mins, linestyle='', marker='o', color='chartreuse')
     plt.plot(maximaIdxs, maxs, linestyle='', marker='o', color='b')
+
+    # graph
+    plt.title(symbol + ' price evolution - last year')
+    plt.axvline(0, color='purple')
+    plt.axhline(0, color='purple')
 
     # trendlines
     margin = int(len(h)/100*30)
@@ -127,18 +132,6 @@ def plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res):
 
 # ticker = 'DISH'
 # h = get_hist_data(ticker)
-# print("We entered this for", ticker)
 # (minimaIdxs, pmin, mintrend, minwindows), (maximaIdxs, pmax, maxtrend, maxwindows) = trendln.calc_support_resistance(h, window=len(h), errpct=0.01, sortError=False, accuracy=1)
-# print("We reached this for", ticker)
-# try:
-#     (best_sup, best_res) = filter_best_supres(mintrend, maxtrend, h)
-#     plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res)
-#     print("Write yes if it's it okay to keep", ticker)
-#     x = input()
-#     if x == 'yes':
-#         final_five_eq_symbols.append(ticker)
-#         print(final_five_eq_symbols)
-#     else:
-#         print(final_five_eq_symbols)
-# except:
-#     print("No suitable support / resistance found for", ticker)
+# (best_sup, best_res) = filter_best_supres(mintrend, maxtrend, h)
+# plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res, ticker)

@@ -14,7 +14,8 @@ portname = str(ny_now.year) + '-' + str(ny_now.month) + '-' + str(ny_now.day)
 
 
 ### FUNCTIONS ###
-def prepare_portfolio(portfolio):
+def prepare_portfolio():
+    portfolio = dict()
     portfolio[portname] = {"bought":{}, "owned":{}, "sold":{}}
     return(portfolio)
 
@@ -111,3 +112,13 @@ def do_we_currently_own(symbol, portfolio):
     if symbol in owned_secus:
         boolean = True
     return(boolean)
+
+
+def place_stoploss_orders(portfolio, stoploss_orders, support_values, margin):
+    """If we went long on a support, we prevent from downside breakouts by placing
+    the stop loss order just below the support level (i.e. at support - margin)"""
+    owned = portfolio[portname]['owned']
+    owned_symbols = [owned[key]['name'] for key in owned]
+    for symbols in owned_symbols:
+        stoploss_orders[symbol] = support_values - margin
+    return(stoploss_orders)

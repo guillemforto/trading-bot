@@ -56,8 +56,7 @@ def get_next_trading_hours():
 
 
 def get_requests_frequency(nyse_h):
-    # tot nb of trading minutes
-    diff = (nyse_h[1] - nyse_h[0]).total_seconds() / 60
+    diff = (nyse_h[1] - nyse_h[0]).total_seconds() / 60 # nb of trading minutes
     requests_frequency = (diff / (max_nb_requests_per_day / nb_equities)) * 60
     requests_frequency = math.ceil(requests_frequency)
     return(requests_frequency)

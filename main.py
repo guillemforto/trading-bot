@@ -1,12 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-TRADING BOT
+TRADING BOT - 04 / 2020
 
 @author: guillemforto
 To launch it via Terminal:
-cd /Users/guillemforto/Desktop/trading-bot
-python main.py
+    > cd /Users/guillemforto/Desktop/trading-bot
+    > python main.py
 """
 
 
@@ -58,6 +56,7 @@ def main():
     ### PRE-trading ###
     nyse_h = tm.get_next_trading_hours()
     requests_frequency = tm.get_requests_frequency(nyse_h)
+    requests_frequency_inmin = math.ceil(get_requests_frequency(nyse_h) / 60)
     startTrading = tm.is_market_open(nyse_h)
 
     firstEntrance = True
@@ -86,7 +85,8 @@ def main():
         candidates_table = dr.get_candidate_equities(url)
         (five_eq_symbols, five_eq_data, five_eq_supres) = dr.get_5_equities_data(candidates_table)
 
-        portfolio = pm.prepare_portfolio(dict())
+        portfolio = pm.prepare_portfolio()
+        stoploss_orders = {}
 
 
         ### ACTION ###
@@ -101,15 +101,15 @@ def main():
             five_eq_data = dr.update_5_equities_data(five_eq_symbols)
 
             print("Checking for new trading opportunities...")
-            booleans = strat.is_moment_to_golong(five_eq_symbols, five_eq_data, five_eq_supres, portfolio)
-            if any(booleans):
+            (golong_booleans, coverlong_booleans) = strat.go_or_cover_long(five_eq_symbols, five_eq_data, five_eq_supres, portfolio, requests_frequency_inmin)
+            if any(golong_booleans):
                 pm.add_purchases(portfolio, booleans, five_eq_symbols, five_eq_data)
+                pm.place_stoploss_orders(portfolio)
                 print("Our current profit / loss is:", pm.compute_profit(portfolio), '€')
             else:
                 print('Nothing to buy.')
 
-            booleans = strat.is_moment_to_coverlong(five_eq_symbols, five_eq_data, five_eq_supres, portfolio)
-            if any(booleans):
+            if any(coverlong_booleans):
                 pm.add_sales(portfolio, booleans, five_eq_symbols, five_eq_data)
                 print("Our current profit / loss is:", pm.compute_profit(portfolio), '€')
             else:

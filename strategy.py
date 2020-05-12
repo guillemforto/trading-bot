@@ -20,76 +20,44 @@ import portfolio_management as pm
 #     return(boolean)
 
 
-def is_moment_to_golong(five_eq_symbols, five_eq_data, five_eq_supres, portfolio):
-    """We go long if:
-    - we don't already own the stock
-    - price close to support (i.e. if price breaches support + margin)"""
+def is_moment_to_golong(index, closing_prices, support_value, margin, golong_booleans):
+    """We go long if price close to support (i.e. if price breaches support + margin)"""
+    if any([k - margin <= support_value for k in closing_prices]):
+        golong_booleans[index] = True
+        print("\nTrading opportunity detected! We go long on ", symbol, ".", sep='')
+        print('Last closing prices:', closing_prices)
+        print("Today's (support + margin) value:", support_value + margin)
+    return(golong_booleans)
 
-    booleans = [False] * 5
+
+def is_moment_to_coverlong(index, closing_prices, resistance_value, margin, coverlong_booleans):
+    """We cover long if price close to resistance (i.e. if price breaches resistance - margin)"""
+    if any([k + margin >= resistance_value for k in closing_prices]):
+        coverlong_booleans[index] = True
+        print("\nCovering long position for ", symbol, ".", sep='')
+        print('Last closing prices:', closing_prices)
+        print("Today's (resistance - margin) values:", resistance_value - margin)
+    return(coverlong_booleans)
+
+
+def go_or_cover_long(five_eq_symbols, five_eq_data, five_eq_supres, portfolio, requests_frequency_inmin):
+    golong_booleans = [False] * len(five_eq_symbols)
+    coverlong_booleans = [False] * len(five_eq_symbols)
+
     for i in range(len(five_eq_symbols)):
         symbol = five_eq_symbols[i]
+
+        # support and resistance values + prices
+        support_value = five_eq_supres[i][1] + five_eq_supres[i][0] * 250.0
+        resistance_value = five_eq_supres[i][3] + five_eq_supres[i][2] * 250.0
+        margin = (resistance_value - support_value) / 10
+        closing_prices = five_eq_data[i]['4. close'].values[-requests_frequency_inmin:]
 
         if not pm.do_we_currently_own(symbol, portfolio):
-            # support and resistance values
-            x_vals = [round(l, 1) for l in np.arange(250.0, 251.1, 0.1)]
-            support_values = [five_eq_supres[i][1] + five_eq_supres[i][0] * x for x in x_vals]
-            resistance_values = [five_eq_supres[i][3] + five_eq_supres[i][2] * x for x in x_vals]
-            margin = (max(resistance_values) - min(support_values)) / 10
+            golong_booleans = is_moment_to_golong(i, closing_prices, support_value, margin, golong_booleans)
+            coverlong_booleans = is_moment_to_coverlong(i, closing_prices, support_value, margin, coverlong_booleans)
 
-            # price
-            closing_prices = five_eq_data[i]['4. close'].values[-10:]
-
-            if any([any(k - margin <= support_values) for k in closing_prices]):
-                booleans[i] = True
-                print("\nTrading opportunity detected! We go long on ", symbol, ".", sep='')
-                print('Last closing prices:', closing_prices)
-                print('Daily (support + margin) values:', [round(p,1) + margin for p in support_values])
-
-    return(booleans)
-
-
-def is_moment_to_coverlong(five_eq_symbols, five_eq_data, five_eq_supres, portfolio):
-    """We go coverlong if:
-    - we currently own the stock
-    - price close to resistance (i.e. if price breaches resistance - margin)"""
-
-    booleans = [False] * 5
-    for i in range(len(five_eq_symbols)):
-        symbol = five_eq_symbols[i]
-
-        if pm.do_we_currently_own(symbol, portfolio):
-            # support and resistance values
-            x_vals = [round(l, 1) for l in np.arange(250.0, 251.1, 0.1)]
-            support_values = [five_eq_supres[i][1] + five_eq_supres[i][0] * x for x in x_vals]
-            resistance_values = [five_eq_supres[i][3] + five_eq_supres[i][2] * x for x in x_vals]
-            margin = (max(resistance_values) - min(support_values)) / 10
-
-            # price
-            closing_prices = five_eq_data[i]['4. close'].values[-10:]
-
-            if any([any(k + margin >= resistance_values) for k in closing_prices]):
-                booleans[i] = True
-                print("\nCovering long position for ", symbol, ".", sep='')
-                print('Last closing prices:', closing_prices)
-                print('Daily (resistance - margin) values:', [round(p,1) for p in resistance_values])
-
-    return(booleans)
-
-
-# def is_moment_to_goshort():
-#     boolean = False
-#     resistance_level = 122 # should be a function of price
-#     if price > resistance:
-#         boolean = True
-#     return(boolean)
-#
-#
-# def is_moment_to_covershort():
-#     boolean = False
-#     support_level = 100
-#     if price < support:
-#         boolean = True
-#     return(boolean)
+    return((golong_booleans, coverlong_booleans))
 
 
 # def compute_profit_potential():

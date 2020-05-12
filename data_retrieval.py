@@ -91,7 +91,7 @@ def is_there_appropriate_supres(symbol):
     (minimaIdxs, pmin, mintrend, minwindows), (maximaIdxs, pmax, maxtrend, maxwindows) = trendln.calc_support_resistance(h, window=len(h), errpct=0.01, sortError=False, accuracy=1)
     try:
         (best_sup, best_res) = supres.filter_best_supres(mintrend, maxtrend, h)
-        supres.plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res)
+        supres.plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res, symbol)
         print("Is it okay to keep", symbol, '?')
         x = input("[y/n]: ")
         # x = 'y'
