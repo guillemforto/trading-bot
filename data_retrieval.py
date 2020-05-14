@@ -3,35 +3,66 @@
 ########################################################
 
 ### IMPORTATION ###
-import numpy as np
-import pandas as pd
-
-import requests
-
-from datetime import datetime
-from datetime import timedelta
-import time
-import pytz
-
-from alpha_vantage.timeseries import TimeSeries
-from alpha_vantage.techindicators import TechIndicators
-
+from globalenv import *
 import supres as supres
-import trendln
 
-### GLOBAL ENV ###
-    # time
-timezone = pytz.timezone("America/New_York")
-
-    # alphavantage api
+    # GLOBALS VARS #
 apikey = '0FA4MXDSORI7KI96'
 ts = TimeSeries(key=apikey, output_format='pandas')
 ti = TechIndicators(key=apikey)
 
+timezone = pytz.timezone("America/New_York")
+
+real_time_tickers = {   'IBM' : 'International Business Machines',
+                        'CAT':  'Caterpillar',
+                        'KO':   'Coca-cola',
+                        'HPQ':  'Hewlett Packard',
+                        'JNJ':  'Johnson & Johnson',
+                        'MTW':  'Manitowoc',
+                        'SNAP': 'Snapchat',
+                        'MO':   'Altria',
+                        'FCX':  'Freeport',
+                        'HLF':  'Herbalife',
+                        'PRGO': 'Perrigo',
+                        'BABA': 'Alibaba',
+                        'JPM':  'JPMorgan',
+                        'V':    'Visa Inc.',
+                        'WMT':  'Walmart Inc.',
+                        'XOM':  'Exxon Mobil',
+                        'BAC':  'Bank of America',
+                        'PG':   'The Procter & Gamble Co',
+                        'T':    'AT&T',
+                        'MA':   'Mastercard',
+                        'VZ':   'Verizon',
+                        'DIS':  'Walt Disney'}
+
 
 ### FUNCTIONS ###
-def get_candidate_equities(url):
-    table = pd.read_html(requests.get(url).content)[0]
+def get_PERatio(symbol):
+    url = 'https://finance.yahoo.com/quote/' + symbol + '?p=' + symbol + '&.tsrc=fin-srch'
+    table = pd.read_html(requests.get(url).content)[1]
+    PER_ttm = np.float(table.loc[table[0] == 'PE Ratio (TTM)'][1].values[0])
+    if math.isnan(PER_ttm):
+        PER_ttm = None
+    return(PER_ttm)
+
+
+def get_equities_table():
+    PERatio = []
+    print("Getting PE Ratios...")
+    for symbol in tqdm(real_time_tickers):
+        PERatio.append(get_PERatio(symbol))
+        time.sleep(0.5)
+
+    equities_table = pd.DataFrame(real_time_tickers.items(), columns=['Symbol', 'Name'])
+    equities_table['PE Ratio (TTM)'] = PERatio
+    print('Done!')
+    return(equities_table)
+
+
+def get_candidate_equities():
+    table = get_equities_table()
+    # table = pd.read_html(requests.get(url).content)[0]
 
     # Low PER: Q1 < PE ratio (TTM) < Q2
     table = table[~table['PE Ratio (TTM)'].isna()]
@@ -45,15 +76,18 @@ def get_candidate_equities(url):
     else:
         candidates_table = table
 
-    tmp = candidates_table['% Change'].apply(lambda x: float(x[:-1])).values
-    candidates_table = candidates_table.drop(['% Change'], axis = 1)
-    candidates_table['% Change'] = tmp
+    candidates_table = table
+    # tmp = candidates_table['% Change'].apply(lambda x: float(x[:-1])).values
+    # candidates_table = candidates_table.drop(['% Change'], axis = 1)
+    # candidates_table['% Change'] = tmp
+    #
+    # candidates_table.sort_values(by="% Change", ascending=False, inplace=True)
 
-    candidates_table.sort_values(by="% Change", ascending=False, inplace=True)
     candidates_table.reset_index(inplace=True, drop=True)
-
     return(candidates_table)
 
+# url = 'https://www.investing.com/stock-screener/?sp=country::5|sector::a|industry::a|equityType::a|exchange::1|eq_market_cap::1500000,1390000000000|pair_change_percent::1,1000%3Ceq_market_cap;1'
+# candidates_table = get_candidate_equities()
 
 def select_top_gainer(candidates_table):
     top_gainer = candidates_table['Symbol'][0]
@@ -64,14 +98,16 @@ def select_top_gainer(candidates_table):
 
 
 def get_1_equity_data(symbol):
-    print("Trying to get/update data for ", symbol)
-    data, meta_data = ts.get_intraday(symbol=symbol, interval='1min', outputsize='full')
+    print("Trying to get/update data for", symbol)
+    data, meta_data = ts.get_intraday(symbol=symbol, interval='1min', outputsize='compact')
     data.sort_index(inplace=True)
     ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
     # data = data[data.index.day == 8] # subset to intraday prices
     data = data[data.index.day == ny_now.day] # subset to intraday prices
     return(data)
 
+# data, meta_data = ts.get_intraday(symbol="BIO", interval='1min', outputsize='compact')
+# data
 
 def is_data_available(data):
     boolean = True
@@ -112,20 +148,21 @@ def get_supres(symbol):
 
 
 def get_5_equities_data(candidates_table):
-    five_eq_symbols = []
-    five_eq_data = []
-    while len(five_eq_symbols) < 5:
+    eq_symbols = []
+    eq_data = []
+    while len(eq_symbols) < 5:
         if len(candidates_table) == 0:
             print('\nNo stocks left in the candidates table.')
             break
         else:
-            print('\n', len(candidates_table), 'stocks left in the candidates table.')
+            print('\n> ', len(candidates_table), ' stocks left in the candidates table.', sep='')
 
         (top_gainer, top_gainer_name, candidates_table) = select_top_gainer(candidates_table)
         print("\nSymbol:", top_gainer, '-', top_gainer_name)
 
         bool1 = is_there_appropriate_supres(top_gainer)
         if not bool1:
+            time.sleep(1)
             continue
         else:
             try:
@@ -139,70 +176,26 @@ def get_5_equities_data(candidates_table):
                 continue
             else:
                 print('Intraday data is available for ', top_gainer, '!', sep='')
-                five_eq_symbols.append(top_gainer)
-                five_eq_data.append(data)
-                print('\nTicker added to the list:', five_eq_symbols)
-
-
-    # while len(five_eq_symbols) < 5:
-    #     (top_gainer, top_gainer_name, candidates_table) = select_top_gainer(candidates_table)
-    #     try:
-    #         data = get_1_equity_data(top_gainer, top_gainer_name)
-    #     except:
-    #         data = pd.DataFrame({})
-    #
-    #
-    #     boolean = is_data_available(data)
-    #     if boolean == False:
-    #         print("No intraday data available for ", top_gainer, ". Please wait a minute...", sep="")
-    #         boolean2 = False
-    #     else:
-    #         print("Intraday data is available for", top_gainer)
-    #         boolean2 = is_there_appropriate_supres(top_gainer)
-    #
-    #     while boolean == False or boolean2 == False:
-    #         time.sleep(30)
-    #         (top_gainer, top_gainer_name, candidates_table) = select_top_gainer(candidates_table)
-    #         try:
-    #             data = get_1_equity_data(top_gainer, top_gainer_name)
-    #         except:
-    #             data = pd.DataFrame({})
-    #         boolean = is_data_available(data)
-    #         if boolean == False:
-    #             print("No intraday data available for ", top_gainer, ". Please wait a minute...", sep="")
-    #             boolean2 = False
-    #         else:
-    #             print("Intraday data is available for", top_gainer)
-    #             boolean2 = is_there_appropriate_supres(top_gainer)
-    #
-    #         if len(candidates_table) == 0:
-    #             print('\nNo stocks left in the candidates table.')
-    #             break
-    #
-    #     five_eq_symbols.append(top_gainer)
-    #     five_eq_data.append(data)
-    #     print('\nTicker added to the list:', five_eq_symbols)
-    #
-    #     if len(candidates_table) == 0:
-    #         print('\nNo stocks left in the candidates table.')
-    #         break
+                eq_symbols.append(top_gainer)
+                eq_data.append(data)
+                print('\nTicker added to the list:', eq_symbols)
 
     # Getting support and resistances
-    five_eq_supres = []
-    for symbol in five_eq_symbols:
-        five_eq_supres.append(get_supres(symbol))
+    eq_supres = []
+    for symbol in eq_symbols:
+        eq_supres.append(get_supres(symbol))
 
-    print('The final list is:', five_eq_symbols, '\n')
+    print('The final list is:', eq_symbols, '\n')
 
     print('Done!')
-    return((five_eq_symbols, five_eq_data, five_eq_supres))
+    return((eq_symbols, eq_data, eq_supres))
 
 
 
-def update_5_equities_data(five_eq_symbols):
+def update_5_equities_data(eq_symbols):
     print("\nUpdating data for our equities:")
-    five_eq_data = []
-    for symbol in five_eq_symbols:
-        five_eq_data.append(get_1_equity_data(symbol))
+    eq_data = []
+    for symbol in eq_symbols:
+        eq_data.append(get_1_equity_data(symbol))
     print("Done!\n")
-    return(five_eq_data)
+    return(eq_data)

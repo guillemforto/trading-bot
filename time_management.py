@@ -3,23 +3,35 @@
 ########################################################
 
 ### IMPORTATION ###
-from datetime import datetime
-from datetime import timedelta
-import calendar
-import time
-import pytz
-import holidays
+from globalenv import *
 
-import numpy as np
-import math
-
-
-### GLOBAL ENV ###
-nb_equities = 5
-timezone = pytz.timezone("America/New_York")
-max_nb_requests_per_day = 400
+### GLOBAL VARS ###
+real_time_tickers = {   'IBM' : 'International Business Machines',
+                        'CAT':  'Caterpillar',
+                        'KO':   'Coca-cola',
+                        'HPQ':  'Hewlett Packard',
+                        'JNJ':  'Johnson & Johnson',
+                        'MTW':  'Manitowoc',
+                        'SNAP': 'Snapchat',
+                        'MO':   'Altria',
+                        'FCX':  'Freeport',
+                        'HLF':  'Herbalife',
+                        'PRGO': 'Perrigo',
+                        'BABA': 'Alibaba',
+                        'JPM':  'JPMorgan',
+                        'V':    'Visa Inc.',
+                        'WMT':  'Walmart Inc.',
+                        'XOM':  'Exxon Mobil',
+                        'BAC':  'Bank of America',
+                        'PG':   'The Procter & Gamble Co',
+                        'T':    'AT&T',
+                        'MA':   'Mastercard',
+                        'VZ':   'Verizon',
+                        'DIS':  'Walt Disney'}
+                        
+max_nb_requests_per_day = 500 - len(real_time_tickers)
 max_nb_requests_per_minute = 5
-
+timezone = pytz.timezone("America/New_York")
 
 ### FUNCTIONS ###
 def get_next_trading_hours():
@@ -55,7 +67,7 @@ def get_next_trading_hours():
     return(nyse_h)
 
 
-def get_requests_frequency(nyse_h):
+def get_requests_frequency(nyse_h, nb_equities):
     diff = (nyse_h[1] - nyse_h[0]).total_seconds() / 60 # nb of trading minutes
     requests_frequency = (diff / (max_nb_requests_per_day / nb_equities)) * 60
     requests_frequency = math.ceil(requests_frequency)

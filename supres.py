@@ -3,14 +3,7 @@
 ########################################################
 
 ### IMPORTATION ###
-import numpy as np
-import pandas as pd
-import statistics
-import yfinance as yf # pip install yfinance
-import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import figure
-import findiff
+from globalenv import *
 
 
 ### FUNCTIONS ###
@@ -78,6 +71,18 @@ def keep_recent_supres(mintrend, maxtrend, h, pct_threshold=70):
     return(candidates)
 
 
+def keep_lastPriceContained_supres(mintrend, maxtrend, h):
+    candidates = []
+    last_price = h[-1]
+    for i in range(len(mintrend)):
+        last_sup_val = mintrend[i][1][1] + len(h) * mintrend[i][1][0]
+        for j in range(len(maxtrend)):
+            last_res_val = maxtrend[j][1][1] + len(h) * maxtrend[j][1][0]
+            if last_price > last_sup_val and last_price < last_res_val:
+                candidates.append((i,j))
+    return(candidates)
+
+
 def keep_lowerRiemann_supres(best_candidates, mintrend, maxtrend):
     if best_candidates != []:
         l = [i[0] + i[1] for i in best_candidates]
@@ -91,7 +96,8 @@ def filter_best_supres(mintrend, maxtrend, h):
     candidates1 = keep_parallel_supres(mintrend, maxtrend, h)
     candidates2 = keep_similarPeriod_supres(mintrend, maxtrend)
     candidates3 = keep_recent_supres(mintrend, maxtrend, h, pct_threshold=65)
-    best_candidates = list(set(candidates0) & set(candidates1) & set(candidates2) & set(candidates3))
+    candidates4 = keep_lastPriceContained_supres(mintrend, maxtrend, h)
+    best_candidates = list(set(candidates0) & set(candidates1) & set(candidates2) & set(candidates3) & set(candidates4))
     (best_sup, best_res) = keep_lowerRiemann_supres(best_candidates, mintrend, maxtrend)
     return((best_sup, best_res))
 
@@ -130,7 +136,7 @@ def plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res, symbol):
     plt.show()
 
 
-# ticker = 'DISH'
+# ticker = 'OLLI'
 # h = get_hist_data(ticker)
 # (minimaIdxs, pmin, mintrend, minwindows), (maximaIdxs, pmax, maxtrend, maxwindows) = trendln.calc_support_resistance(h, window=len(h), errpct=0.01, sortError=False, accuracy=1)
 # (best_sup, best_res) = filter_best_supres(mintrend, maxtrend, h)
