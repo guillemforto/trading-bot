@@ -21,7 +21,8 @@ def prepare_portfolio():
 
 def add_purchase(portfolio, index, eq_symbols, eq_data):
     symbol = eq_symbols[index]
-    print("\nBuying", symbol)
+    print('\nTrading opportunity detected!')
+    print("We go long on", symbol)
     eq_data = eq_data[index].tail(1)
 
     # get the stock state using the symbol
@@ -50,7 +51,7 @@ def add_purchase(portfolio, index, eq_symbols, eq_data):
 
 def add_sale(portfolio, index, eq_symbols, eq_data):
     symbol = eq_symbols[index]
-    print("\nSelling", symbol)
+    print("\nCovering long position for ", symbol, ".", sep='')
     eq_data = eq_data[index].tail(1)
 
     # get the stock state using the symbol
@@ -81,15 +82,12 @@ def add_purchases(portfolio, booleans, eq_symbols, eq_data):
     indexes_to_purchase = [i for i in range(len(booleans)) if booleans[i] == True]
     for index in indexes_to_purchase:
         add_purchase(portfolio, index, eq_symbols, eq_data)
-        print('\nTrading opportunity detected!')
-        print("We go long on ", eq_symbols[index], ".", sep='')
 
 
 def add_sales(portfolio, booleans, eq_symbols, eq_data):
     indexes_to_purchase = [i for i in range(len(booleans)) if booleans[i] == True]
     for index in indexes_to_purchase:
         add_sale(portfolio, index, eq_symbols, eq_data)
-        print("\nCovering long position for ", eq_symbols[index], ".", sep='')
 
 
 def compute_profit(portfolio):
@@ -103,9 +101,9 @@ def compute_profit(portfolio):
         close_sold = sold[symbol]['close']
         if name in purchases:
             close_bought = bought[symbol]['close']
-            profit += (close_bought - close_sold)
+            profit += (close_sold - close_bought)
 
-    return(profit)
+    return(round(profit, 2))
 
 
 def do_we_currently_own(symbol, portfolio):
@@ -116,11 +114,15 @@ def do_we_currently_own(symbol, portfolio):
     return(boolean)
 
 
-def place_stoploss_orders(portfolio, stoploss_orders, support_value, margin):
+def place_stoploss_orders(portfolio, stoploss_orders, eq_symbols, eq_supres):
     """If we went long on a support, we prevent from downside breakout by placing
     the stop loss order just below the support level (i.e. at support - margin)"""
     owned = portfolio[portname]['owned']
     owned_symbols = [owned[key]['name'] for key in owned]
-    for symbols in owned_symbols:
+    for symbol in owned_symbols:
+        index = eq_symbols.index(symbol)
+        support_value = eq_supres[index][1] + eq_supres[index][0] * 250.0
+        resistance_value = eq_supres[index][3] + eq_supres[index][2] * 250.0
+        margin = (resistance_value - support_value) / 10
         stoploss_orders[symbol] = support_value - margin
     return(stoploss_orders)

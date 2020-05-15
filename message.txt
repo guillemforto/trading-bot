@@ -1,4 +1,5 @@
 Time: ${current_hour} - ${current_day}
 - Purchased: ${purchased_tickers}
+- Owned: ${owned_tickers}
 - Sold: ${sold_tickers}
 - Current profit-loss: ${current_profitloss} €

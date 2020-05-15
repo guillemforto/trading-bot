@@ -10,6 +10,11 @@ To launch it via Terminal:
 
 ### GLOBAL ENV ###
 from globalenv import *
+    # modules #
+import time_management as tm
+import data_retrieval as dr
+import portfolio_management as pm
+import strategy as strat
 
 ### GLOBAL VARS ###
 real_time_tickers = {   'IBM' : 'International Business Machines',
@@ -71,8 +76,8 @@ def main():
     while startTrading:
         today_we_traded = False
         ### PREPARATION ###
-        print("Market is open! Waiting 2 mins before starting...\n")
-        # time.sleep(120)
+        print("Market is open! Waiting 1 min before starting...\n")
+        time.sleep(60)
 
         print("First of all, let's pick the equities we will be looking at:")
         candidates_table = dr.get_candidate_equities()
@@ -100,31 +105,39 @@ def main():
                 time.sleep(1)
                 retrieve = tm.is_moment_to_retrieve(nyse_h, requests_frequency)
 
-            eq_data = dr.update_5_equities_data(eq_symbols)
+            try:
+                eq_data = dr.update_5_equities_data(eq_symbols)
+            except:
+                print("Couldn't retrieve anymore data")
+                break
 
             print("Checking for new trading opportunities...")
             (golong_booleans, coverlong_booleans) = \
                 strat.go_or_cover_long(eq_symbols, eq_data, eq_supres, portfolio, requests_frequency_inmin)
 
-            print('golong_booleans:', golong_booleans)
-            print('coverlong_booleans:', coverlong_booleans)
-
             if any(golong_booleans):
                 pm.add_purchases(portfolio, golong_booleans, eq_symbols, eq_data)
-                pm.place_stoploss_orders(portfolio, stoploss_orders, support_value, margin)
-                print(stoploss_orders)
-                print("Our current profit / loss is:", pm.compute_profit(portfolio), '€')
+                pm.place_stoploss_orders(portfolio, stoploss_orders, eq_symbols, eq_supres)
+                print('stoploss_orders', stoploss_orders)
+                curr_proloss = pm.compute_profit(portfolio)
+                print("Our current profit / loss is:", curr_proloss, '€')
+                mailing.send_email(portfolio, profitloss_flt = curr_proloss)
             else:
-                print('Nothing to buy.')
+                print('\nNothing to buy.')
 
             if any(coverlong_booleans):
                 pm.add_sales(portfolio, coverlong_booleans, eq_symbols, eq_data)
-                print("Our current profit / loss is:", pm.compute_profit(portfolio), '€')
+                curr_proloss = pm.compute_profit(portfolio)
+                print("Our current profit / loss is:", curr_proloss, '€')
+                mailing.send_email(portfolio, profitloss_flt = curr_proloss)
             else:
-                print("Nothing to sell.")
+                print("Nothing to sell.\n")
+
+            print('Portfolio:', portfolio)
             print("Done!\n")
 
             action = tm.is_market_open(nyse_h)
+
 
         startTrading = tm.is_market_open(nyse_h)
 

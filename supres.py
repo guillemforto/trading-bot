@@ -20,7 +20,6 @@ def keep_halfLasting_supres(mintrend, maxtrend, h, lengthThreshold=40):
     longest_mintrends = [i for i in range(len(mintrend)) if (mintrend[i][0][-1] - mintrend[i][0][0])/len(h)*100 >= lengthThreshold]
     longest_maxtrends = [j for j in range(len(maxtrend)) if (maxtrend[j][0][-1] - maxtrend[j][0][0])/len(h)*100 >= lengthThreshold]
     candidates = [(i,j) for i in longest_mintrends for j in longest_maxtrends]
-
     return(candidates)
 
 
@@ -136,7 +135,7 @@ def plot_supres(h, minimaIdxs, maximaIdxs, best_sup, best_res, symbol):
     plt.show()
 
 
-# ticker = 'OLLI'
+# ticker = 'BBVA.MC'
 # h = get_hist_data(ticker)
 # (minimaIdxs, pmin, mintrend, minwindows), (maximaIdxs, pmax, maxtrend, maxwindows) = trendln.calc_support_resistance(h, window=len(h), errpct=0.01, sortError=False, accuracy=1)
 # (best_sup, best_res) = filter_best_supres(mintrend, maxtrend, h)
