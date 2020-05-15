@@ -10,6 +10,7 @@ from globalenv import *
 timezone = pytz.timezone("America/New_York")
 ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
 portname = str(ny_now.year) + '-' + str(ny_now.month) + '-' + str(ny_now.day)
+init_capital = 1000
 
 
 ### FUNCTIONS ###
@@ -19,6 +20,19 @@ def prepare_portfolio():
     return(portfolio)
 
 
+def qtty_shares(cl_price, init_capital, eq_symbols):
+    budget = init_capital / len(eq_symbols)
+    return(budget // cl_price)
+
+
+def times_stock_been_traded(operation, portname, symbol):
+    tmp = portfolio[portname][operation]
+    ith_time_bought = 0
+    if tmp != {}:
+        ith_time_bought = [tmp[key]['name'] for key in tmp].count(symbol)
+    return(ith_time_bought)
+
+
 def add_purchase(portfolio, index, eq_symbols, eq_data):
     symbol = eq_symbols[index]
     print('\nTrading opportunity detected!')
@@ -26,21 +40,20 @@ def add_purchase(portfolio, index, eq_symbols, eq_data):
     eq_data = eq_data[index].tail(1)
 
     # get the stock state using the symbol
-    stock_state = { 'close':    eq_data['4. close'][0],
+    buy_price = eq_data['4. close'][0]
+    stock_state = { 'close':    buy_price,
                     'high':     eq_data['2. high'][0],
                     'low':      eq_data['3. low'][0],
                     'name':     symbol,
                     'open':     eq_data['1. open'][0],
-                    'volume':   eq_data['5. volume'][0]
+                    'volume':   eq_data['5. volume'][0],
+                    'quantity': qtty_shares(buy_price, init_capital, eq_symbols)
     }
-    print("Closing price at which we buy:", stock_state['close'], '\n')
+    print("Closing price at which we buy:", buy_price, '$')
+    print("How many shares do we buy:", stock_state['quantity'], '\n')
 
     # how many times have we traded this stock
-    tmp = portfolio[portname]['bought']
-    if tmp == {}:
-        ith_time_bought = 0
-    else:
-        ith_time_bought = [tmp[key]['name'] for key in tmp].count(symbol)
+    ith_time_bought = times_stock_been_traded('bought', portname, symbol)
 
     # adding purchase in 'bought' and 'owned'
     portfolio[portname]['bought'][symbol + " " + str(ith_time_bought)] = stock_state
@@ -55,21 +68,20 @@ def add_sale(portfolio, index, eq_symbols, eq_data):
     eq_data = eq_data[index].tail(1)
 
     # get the stock state using the symbol
-    stock_state = { 'close':    eq_data['4. close'][0],
+    sell_price = eq_data['4. close'][0]
+    stock_state = { 'close':    sell_price,
                     'high':     eq_data['2. high'][0],
                     'low':      eq_data['3. low'][0],
                     'name':     symbol,
                     'open':     eq_data['1. open'][0],
-                    'volume':   eq_data['5. volume'][0]
+                    'volume':   eq_data['5. volume'][0],
+                    'quantity': qtty_shares(sell_price, init_capital, eq_symbols)
     }
-    print("Closing price at which we sell:", stock_state['close'], '\n')
+    print("Closing price at which we sell:", sell_price, '$')
+    print("How many shares do we buy:", stock_state['volume'], '\n')
 
     # how many times have we traded this stock
-    tmp = portfolio[portname]['sold']
-    if tmp == {}:
-        ith_time_sold = 0
-    else:
-        ith_time_sold = [tmp[key]['name'] for key in tmp].count(symbol)
+    ith_time_sold = times_stock_been_traded('sold', portname, symbol)
 
     # adding purchase in 'sold' and removing from 'owned'
     portfolio[portname]['sold'][symbol + " " + str(ith_time_sold)] = stock_state
@@ -90,22 +102,6 @@ def add_sales(portfolio, booleans, eq_symbols, eq_data):
         add_sale(portfolio, index, eq_symbols, eq_data)
 
 
-def compute_profit(portfolio):
-    profit = 0
-    sold = portfolio[portname]['sold']
-    bought = portfolio[portname]['bought']
-
-    purchases = [bought[key]['name'] for key in bought]
-    for symbol in sold:
-        name = sold[symbol]['name']
-        close_sold = sold[symbol]['close']
-        if name in purchases:
-            close_bought = bought[symbol]['close']
-            profit += (close_sold - close_bought)
-
-    return(round(profit, 2))
-
-
 def do_we_currently_own(symbol, portfolio):
     boolean = False
     owned_secus = [portfolio[portname]['owned'][key]['name'] for key in portfolio[portname]['owned']]
@@ -121,8 +117,32 @@ def place_stoploss_orders(portfolio, stoploss_orders, eq_symbols, eq_supres):
     owned_symbols = [owned[key]['name'] for key in owned]
     for symbol in owned_symbols:
         index = eq_symbols.index(symbol)
-        support_value = eq_supres[index][1] + eq_supres[index][0] * 250.0
-        resistance_value = eq_supres[index][3] + eq_supres[index][2] * 250.0
-        margin = (resistance_value - support_value) / 10
-        stoploss_orders[symbol] = support_value - margin
+        (support_value, resistance_value, margin) = eq_supres[i]
+        stoploss_orders[symbol] = support_value - (margin / 5)
     return(stoploss_orders)
+
+
+def place_halfprofit_orders(portfolio, halfprofit_orders, eq_symbols, eq_supres):
+    """If we went long on a support, we lock in a profit by placing a halfprofit
+    order in-between support and resistance (i.e. at (resistance + support) / 2))"""
+    owned = portfolio[portname]['owned']
+    owned_symbols = [owned[key]['name'] for key in owned]
+    for symbol in owned_symbols:
+        index = eq_symbols.index(symbol)
+        (support_value, resistance_value, margin) = eq_supres[i]
+        halfprofit_orders[symbol] = (support_value + resistance_value) / 2
+    return(halfprofit_orders)
+
+
+def compute_profit(portfolio, init_capital):
+    profit = init_capital
+    sold = portfolio[portname]['sold']
+    bought = portfolio[portname]['bought']
+    for key in sold:
+        if key in bought.keys():
+            close_sold = sold[key]['close']
+            quantity_sold = sold[key]['quantity']
+            close_bought = bought[key]['close']
+            quantity_bought = bought[symbol]['quantity']
+            profit += (quantity_sold * close_sold - quantity_bought * close_bought)
+    return(round(profit, 2))

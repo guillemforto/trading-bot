@@ -6,29 +6,19 @@
 from globalenv import *
 
 ### GLOBAL VARS ###
-real_time_tickers = {   'IBM' : 'International Business Machines',
-                        'CAT':  'Caterpillar',
-                        'KO':   'Coca-cola',
-                        'HPQ':  'Hewlett Packard',
-                        'JNJ':  'Johnson & Johnson',
-                        'MTW':  'Manitowoc',
-                        'SNAP': 'Snapchat',
-                        'MO':   'Altria',
-                        'FCX':  'Freeport',
-                        'HLF':  'Herbalife',
-                        'PRGO': 'Perrigo',
-                        'BABA': 'Alibaba',
-                        'JPM':  'JPMorgan',
-                        'V':    'Visa Inc.',
-                        'WMT':  'Walmart Inc.',
-                        'XOM':  'Exxon Mobil',
-                        'BAC':  'Bank of America',
-                        'PG':   'The Procter & Gamble Co',
-                        'T':    'AT&T',
-                        'MA':   'Mastercard',
-                        'VZ':   'Verizon',
-                        'DIS':  'Walt Disney'}
-                        
+real_time_tickers = {\
+    'IBM' : 'International Business Machines',  'CAT':  'Caterpillar',
+    'KO':   'Coca-cola',                        'HPQ':  'Hewlett Packard',
+    'JNJ':  'Johnson & Johnson',                'MTW':  'Manitowoc',
+    'SNAP': 'Snapchat',                         'MO':   'Altria',
+    'FCX':  'Freeport',                         'HLF':  'Herbalife',
+    'PRGO': 'Perrigo',                          'BABA': 'Alibaba',
+    'JPM':  'JPMorgan',                         'V':    'Visa Inc.',
+    'WMT':  'Walmart Inc.',                     'XOM':  'Exxon Mobil',
+    'BAC':  'Bank of America',                  'PG':   'The Procter & Gamble Co',
+    'T':    'AT&T',                             'MA':   'Mastercard',
+    'ANF':  'Abercrombie & Fitch',              'ACN':   'Accenture'}
+
 max_nb_requests_per_day = 500 - len(real_time_tickers)
 max_nb_requests_per_minute = 5
 timezone = pytz.timezone("America/New_York")
@@ -63,7 +53,6 @@ def get_next_trading_hours():
         op_h = datetime(next_day.year, next_day.month, next_day.day, 9, 30, 00)
         clo_h = datetime(next_day.year, next_day.month, next_day.day, 15, 59, 00)
         nyse_h = (timezone.localize(op_h), timezone.localize(clo_h))
-
     return(nyse_h)
 
 
@@ -87,6 +76,13 @@ def get_secs_till_op(nyse_h):
     days_till_op = (nyse_h[0] - ny_now).days * 24 * 60 * 60
     secs_till_op = days_till_op + (nyse_h[0] - ny_now).seconds
     return(secs_till_op)
+
+
+def get_time_measures(secs_till_op):
+    time_till_op = (secs_till_op / 60) / 60
+    hours_till_op = int(time_till_op)
+    minutes_till_op = int((time_till_op - hours_till_op) * 60)
+    return hours_till_op, minutes_till_op
 
 
 def is_moment_to_retrieve(nyse_h, requests_frequency):

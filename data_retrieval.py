@@ -13,28 +13,18 @@ ti = TechIndicators(key=apikey)
 
 timezone = pytz.timezone("America/New_York")
 
-real_time_tickers = {   'IBM' : 'International Business Machines',
-                        'CAT':  'Caterpillar',
-                        'KO':   'Coca-cola',
-                        'HPQ':  'Hewlett Packard',
-                        'JNJ':  'Johnson & Johnson',
-                        'MTW':  'Manitowoc',
-                        'SNAP': 'Snapchat',
-                        'MO':   'Altria',
-                        'FCX':  'Freeport',
-                        'HLF':  'Herbalife',
-                        'PRGO': 'Perrigo',
-                        'BABA': 'Alibaba',
-                        'JPM':  'JPMorgan',
-                        'V':    'Visa Inc.',
-                        'WMT':  'Walmart Inc.',
-                        'XOM':  'Exxon Mobil',
-                        'BAC':  'Bank of America',
-                        'PG':   'The Procter & Gamble Co',
-                        'T':    'AT&T',
-                        'MA':   'Mastercard',
-                        'VZ':   'Verizon',
-                        'DIS':  'Walt Disney'}
+real_time_tickers = {\
+    'IBM' : 'International Business Machines',  'CAT':  'Caterpillar',
+    'KO':   'Coca-cola',                        'HPQ':  'Hewlett Packard',
+    'JNJ':  'Johnson & Johnson',                'MTW':  'Manitowoc',
+    'SNAP': 'Snapchat',                         'MO':   'Altria',
+    'FCX':  'Freeport',                         'HLF':  'Herbalife',
+    'PRGO': 'Perrigo',                          'BABA': 'Alibaba',
+    'JPM':  'JPMorgan',                         'V':    'Visa Inc.',
+    'WMT':  'Walmart Inc.',                     'XOM':  'Exxon Mobil',
+    'BAC':  'Bank of America',                  'PG':   'The Procter & Gamble Co',
+    'T':    'AT&T',                             'MA':   'Mastercard',
+    'ANF':  'Abercrombie & Fitch',              'ACN':   'Accenture'}
 
 
 ### FUNCTIONS ###
@@ -98,7 +88,7 @@ def select_top_gainer(candidates_table):
 
 
 def get_1_equity_data(symbol):
-    print("Trying to get/update data for", symbol)
+    print("> Trying to get/update data for", symbol)
     data, meta_data = ts.get_intraday(symbol=symbol, interval='1min', outputsize='compact')
     data.sort_index(inplace=True)
     ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
@@ -143,8 +133,10 @@ def get_supres(symbol):
     h = supres.get_hist_data(symbol)
     (minimaIdxs, pmin, mintrend, minwindows), (maximaIdxs, pmax, maxtrend, maxwindows) = trendln.calc_support_resistance(h, window=len(h), errpct=0.01, sortError=False, accuracy=1)
     (best_sup, best_res) = supres.filter_best_supres(mintrend, maxtrend, h)
-    # sup_slope, sup_intercept, res_slope, res_intercept
-    return((best_sup[1][0], best_sup[1][1], best_res[1][0], best_res[1][1]))
+    support_value = best_sup[1][1] + best_sup[1][0] * len(h)
+    resistance_value = best_res[1][1] + best_res[1][0] * len(h)
+    margin = (resistance_value - support_value) / 10
+    return((support_value, resistance_value, margin))
 
 
 def get_5_equities_data(candidates_table):
