@@ -8,25 +8,18 @@ from globalenv import *
 
 ### GLOBAL ENV ###
 timezone = pytz.timezone("America/New_York")
-ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
-portname = str(ny_now.year) + '-' + str(ny_now.month) + '-' + str(ny_now.day)
 init_capital = 1000
 
 
 ### FUNCTIONS ###
-def prepare_portfolio():
-    portfolio = dict()
-    portfolio[portname] = {"bought":{}, "owned":{}, "sold":{}}
-    return(portfolio)
-
 
 def qtty_shares(cl_price, init_capital, eq_symbols):
     budget = init_capital / len(eq_symbols)
     return(budget // cl_price)
 
 
-def times_stock_been_traded(operation, portname, symbol):
-    tmp = portfolio[portname][operation]
+def times_stock_been_traded(portfolio, operation, symbol):
+    tmp = portfolio[operation]
     ith_time_bought = 0
     if tmp != {}:
         ith_time_bought = [tmp[key]['name'] for key in tmp].count(symbol)
@@ -41,24 +34,26 @@ def add_purchase(portfolio, index, eq_symbols, eq_data):
 
     # get the stock state using the symbol
     buy_price = eq_data['4. close'][0]
-    stock_state = { 'close':    buy_price,
-                    'high':     eq_data['2. high'][0],
-                    'low':      eq_data['3. low'][0],
-                    'name':     symbol,
-                    'open':     eq_data['1. open'][0],
-                    'volume':   eq_data['5. volume'][0],
-                    'quantity': qtty_shares(buy_price, init_capital, eq_symbols)
+    ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
+    curr_day = str(ny_now.year) + '-' + str(ny_now.month) + '-' + str(ny_now.day)
+    purchase_chars = {  'name':     symbol,
+                        'close':    buy_price,
+                        'quantity': qtty_shares(buy_price, init_capital, eq_symbols),
+                        'day':      curr_day,
+                        'high':     eq_data['2. high'][0],
+                        'low':      eq_data['3. low'][0],
+                        'open':     eq_data['1. open'][0],
+                        'volume':   eq_data['5. volume'][0]
     }
     print("Closing price at which we buy:", buy_price, '$')
-    print("How many shares do we buy:", stock_state['quantity'], '\n')
+    print("How many shares do we buy:", purchase_chars['quantity'], '\n')
 
     # how many times have we traded this stock
-    ith_time_bought = times_stock_been_traded('bought', portname, symbol)
+    ith_time_bought = times_stock_been_traded(portfolio, 'bought', symbol)
 
     # adding purchase in 'bought' and 'owned'
-    portfolio[portname]['bought'][symbol + " " + str(ith_time_bought)] = stock_state
-    portfolio[portname]['owned'][symbol + " " + str(ith_time_bought)] = stock_state
-
+    portfolio['bought'][symbol + " " + str(ith_time_bought)] = purchase_chars
+    portfolio['owned'][symbol + " " + str(ith_time_bought)] = purchase_chars
     return(portfolio)
 
 
@@ -69,24 +64,26 @@ def add_sale(portfolio, index, eq_symbols, eq_data):
 
     # get the stock state using the symbol
     sell_price = eq_data['4. close'][0]
-    stock_state = { 'close':    sell_price,
+    ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
+    curr_day = str(ny_now.year) + '-' + str(ny_now.month) + '-' + str(ny_now.day)
+    sale_chars = {  'name':     symbol,
+                    'close':    sell_price,
+                    'quantity': qtty_shares(sell_price, init_capital, eq_symbols),
+                    'day':      curr_day,
                     'high':     eq_data['2. high'][0],
                     'low':      eq_data['3. low'][0],
-                    'name':     symbol,
                     'open':     eq_data['1. open'][0],
-                    'volume':   eq_data['5. volume'][0],
-                    'quantity': qtty_shares(sell_price, init_capital, eq_symbols)
+                    'volume':   eq_data['5. volume'][0]
     }
     print("Closing price at which we sell:", sell_price, '$')
-    print("How many shares do we buy:", stock_state['volume'], '\n')
+    print("How many shares do we buy:", sale_chars['volume'], '\n')
 
     # how many times have we traded this stock
-    ith_time_sold = times_stock_been_traded('sold', portname, symbol)
+    ith_time_sold = times_stock_been_traded(portfolio, 'sold', symbol)
 
     # adding purchase in 'sold' and removing from 'owned'
-    portfolio[portname]['sold'][symbol + " " + str(ith_time_sold)] = stock_state
-    del portfolio[portname]['owned'][symbol + " " + str(ith_time_sold)]
-
+    portfolio['sold'][symbol + " " + str(ith_time_sold)] = sale_chars
+    del portfolio['owned'][symbol + " " + str(ith_time_sold)]
     return(portfolio)
 
 
@@ -104,7 +101,7 @@ def add_sales(portfolio, booleans, eq_symbols, eq_data):
 
 def do_we_currently_own(symbol, portfolio):
     boolean = False
-    owned_secus = [portfolio[portname]['owned'][key]['name'] for key in portfolio[portname]['owned']]
+    owned_secus = [portfolio['owned'][key]['name'] for key in portfolio['owned']]
     if symbol in owned_secus:
         boolean = True
     return(boolean)
@@ -113,7 +110,7 @@ def do_we_currently_own(symbol, portfolio):
 def place_stoploss_orders(portfolio, stoploss_orders, eq_symbols, eq_supres):
     """If we went long on a support, we prevent from downside breakout by placing
     the stop loss order just below the support level (i.e. at support - margin)"""
-    owned = portfolio[portname]['owned']
+    owned = portfolio['owned']
     owned_symbols = [owned[key]['name'] for key in owned]
     for symbol in owned_symbols:
         index = eq_symbols.index(symbol)
@@ -125,7 +122,7 @@ def place_stoploss_orders(portfolio, stoploss_orders, eq_symbols, eq_supres):
 def place_halfprofit_orders(portfolio, halfprofit_orders, eq_symbols, eq_supres):
     """If we went long on a support, we lock in a profit by placing a halfprofit
     order in-between support and resistance (i.e. at (resistance + support) / 2))"""
-    owned = portfolio[portname]['owned']
+    owned = portfolio['owned']
     owned_symbols = [owned[key]['name'] for key in owned]
     for symbol in owned_symbols:
         index = eq_symbols.index(symbol)
@@ -136,8 +133,8 @@ def place_halfprofit_orders(portfolio, halfprofit_orders, eq_symbols, eq_supres)
 
 def compute_profit(portfolio, init_capital):
     profit = init_capital
-    sold = portfolio[portname]['sold']
-    bought = portfolio[portname]['bought']
+    sold = portfolio['sold']
+    bought = portfolio['bought']
     for key in sold:
         if key in bought.keys():
             close_sold = sold[key]['close']

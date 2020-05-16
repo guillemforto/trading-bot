@@ -42,7 +42,7 @@ def get_next_trading_hours():
 
     if boolean == False:
         op_h = datetime(ny_now.year, ny_now.month, ny_now.day, 9, 30, 00)
-        clo_h = datetime(ny_now.year, ny_now.month, ny_now.day, 15, 59, 00)
+        clo_h = datetime(ny_now.year, ny_now.month, ny_now.day, 15, 59, 59)
         nyse_h = (timezone.localize(op_h), timezone.localize(clo_h))
     else:
         # Find next business day

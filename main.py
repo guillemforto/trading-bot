@@ -1,5 +1,5 @@
 """
-TRADING BOT - 04 / 2020
+TRADING BOT - 04 / 2020 (confinement period)
 
 @author: guillemforto
 To launch it via Terminal:
@@ -17,103 +17,112 @@ import portfolio_management as pm
 import strategy as strat
 
 
+### GLOBAL VARS ###
+portfolio = {"bought": dict(), "owned":dict(), "sold":dict()}
+stoploss_orders = dict()
+halfprofit_orders = dict()
+
 
 def main():
-    print("\n \n                  WELCOME TO GUILLEM'S TRADING BOT! \n \n")
+    print("\n\n\n                  WELCOME TO GUILLEM'S TRADING BOT! \n\n\n")
+    nb_days = np.float(input("During how many trading days would you like to run the bot?\n> "))
+    ith_day = 1
+    while ith_day <= nb_days:
 
-    ### PRE-trading ###
-    nyse_h = tm.get_next_trading_hours()
-    startTrading = tm.is_market_open(nyse_h)
-
-    if startTrading == False:
-        secs_till_op = tm.get_secs_till_op(nyse_h)
-        hours_till_op, minutes_till_op = tm.get_time_measures(secs_till_op)
-        print("Market opens in", hours_till_op, "hours,", minutes_till_op, "minutes.")
-        print("We will wait till then before starting.")
-
-    while startTrading == False:
-        secs_till_op = tm.get_secs_till_op(nyse_h)
-        if secs_till_op % 300 == 0 and secs_till_op != 0:
-            hours_till_op, minutes_till_op = tm.get_time_measures(secs_till_op)
-            print(hours_till_op, 'h', minutes_till_op, 'mins to go', sep='')
-        time.sleep(1)
-        startTrading = secs_till_op == 0
-
-
-    ### TRADING ###
-    while startTrading == True:
-        today_we_traded = False
-
-        ### PREPARATION ###
-        print("Market is open! Waiting 1 min before starting...\n")
-        time.sleep(60)
-
-        print("First of all, let's pick the equities we will be looking at:")
-        candidates_table = dr.get_candidate_equities()
-        (eq_symbols, eq_data, eq_supres) = dr.get_5_equities_data(candidates_table)
-
-        if len(eq_symbols) != 0:
-            today_we_traded = True
-        else:
-            print("No suitable equities were found on which to trade. Try again tomorrow, thank you! \n")
-            break
-
-        portfolio = pm.prepare_portfolio()
-        stoploss_orders = {}
-        halfprofit_orders = {}
-        nb_equities = len(eq_symbols)
-        requests_frequency = tm.get_requests_frequency(nyse_h, nb_equities)
-        requests_frequency_inmin = math.ceil(requests_frequency / 60)
-
-
-        ### ACTION ###
-        action = True
-        while action == True:
-            # Retrieval
-            retrieve = tm.is_moment_to_retrieve(nyse_h, requests_frequency)
-            while retrieve == False:
-                time.sleep(1)
-                retrieve = tm.is_moment_to_retrieve(nyse_h, requests_frequency)
-            try:
-                eq_data = dr.update_5_equities_data(eq_symbols)
-            except:
-                print("Couldn't retrieve anymore data.")
-                break
-
-            print("Checking for new trading opportunities:")
-            (golong_booleans, coverlong_booleans) = \
-                strat.go_or_cover_long(eq_symbols, eq_data, eq_supres, portfolio, stoploss_orders, halfprofit_orders, requests_frequency_inmin)
-
-            if any(coverlong_booleans):
-                pm.add_sales(portfolio, coverlong_booleans, eq_symbols, eq_data)
-            else:
-                print('\nNothing to sell.')
-
-            if any(golong_booleans):
-                pm.add_purchases(portfolio, golong_booleans, eq_symbols, eq_data)
-                pm.place_stoploss_orders(portfolio, stoploss_orders, eq_symbols, eq_supres)
-                pm.place_halfprofit_orders(portfolio, halfprofit_orders, eq_symbols, eq_supres)
-                print('stoploss_orders', stoploss_orders)
-                print('halfprofit_orders', halfprofit_orders)
-            else:
-                print('Nothing to buy.\n')
-
-            if any(golong_booleans) or any(coverlong_booleans):
-                curr_proloss = pm.compute_profit(portfolio, init_capital)
-                print("Our current profit / loss is:", curr_proloss, '€')
-                mailing.send_email(portfolio, profitloss_flt = curr_proloss)
-
-            print('Portfolio:', portfolio)
-            print("Done!\n")
-            action = tm.is_market_open(nyse_h)
-
-
+        ### PRE-trading ###
+        nyse_h = tm.get_next_trading_hours()
         startTrading = tm.is_market_open(nyse_h)
 
-    # out of the two whiles
-    if today_we_traded:
+        if startTrading == False:
+            secs_till_op = tm.get_secs_till_op(nyse_h)
+            hours_till_op, minutes_till_op = tm.get_time_measures(secs_till_op)
+            print("Market opens in", hours_till_op, "hours,", minutes_till_op, "minutes.")
+            print("We will wait till then before starting.")
+
+        while startTrading == False:
+            secs_till_op = tm.get_secs_till_op(nyse_h)
+            if secs_till_op % 300 == 0 and secs_till_op != 0:
+                hours_till_op, minutes_till_op = tm.get_time_measures(secs_till_op)
+                print(hours_till_op, 'h', minutes_till_op, 'mins to go', sep='')
+            time.sleep(1)
+            startTrading = secs_till_op == 0
+            startTrading = True
+
+
+        ### TRADING ###
+        while startTrading == True:
+            today_we_traded = False
+
+            ### PREPARATION ###
+            print("Market is open! Waiting 1 min before starting...\n")
+            # time.sleep(60)
+                # equity selection
+            print("First of all, let's pick the equities we will be looking at:")
+            candidates_table = dr.get_candidate_equities()
+            (eq_symbols, eq_data, eq_supres) = dr.get_5_equities_data(candidates_table)
+
+            if len(eq_symbols) != 0:
+                today_we_traded = True
+                ith_day += 1
+            else:
+                print("No suitable equities were found on which to trade.")
+                break
+
+            nb_equities = len(eq_symbols)
+            requests_frequency = tm.get_requests_frequency(nyse_h, nb_equities)
+
+
+            ### ACTION ###
+            action = True
+            while action == True:
+                # Retrieval
+                retrieve = tm.is_moment_to_retrieve(nyse_h, requests_frequency)
+                while retrieve == False:
+                    time.sleep(1)
+                    retrieve = tm.is_moment_to_retrieve(nyse_h, requests_frequency)
+                try:
+                    eq_data = dr.update_5_equities_data(eq_symbols)
+                except:
+                    print("Couldn't retrieve anymore data.")
+                    break
+
+                print("Checking for new trading opportunities:")
+                (golong_booleans, coverlong_booleans) = \
+                    strat.go_or_cover_long(eq_symbols, eq_data, eq_supres, portfolio, stoploss_orders, halfprofit_orders, requests_frequency_inmin = math.ceil(requests_frequency / 60))
+
+                if any(coverlong_booleans):
+                    pm.add_sales(portfolio, coverlong_booleans, eq_symbols, eq_data)
+                else:
+                    print('\nNothing to sell.')
+
+                if any(golong_booleans):
+                    pm.add_purchases(portfolio, golong_booleans, eq_symbols, eq_data)
+                    pm.place_stoploss_orders(portfolio, stoploss_orders, eq_symbols, eq_supres)
+                    pm.place_halfprofit_orders(portfolio, halfprofit_orders, eq_symbols, eq_supres)
+                    print('stoploss_orders', stoploss_orders)
+                    print('halfprofit_orders', halfprofit_orders)
+                else:
+                    print('Nothing to buy.\n')
+
+                if any(golong_booleans) or any(coverlong_booleans):
+                    curr_proloss = pm.compute_profit(portfolio, init_capital)
+                    print("Our current profit / loss is:", curr_proloss, '€')
+                    mailing.send_email(portfolio, profitloss_flt = curr_proloss)
+
+                print('Portfolio:', portfolio)
+                print("Done!\n")
+                action = tm.is_market_open(nyse_h)
+
+
+            startTrading = tm.is_market_open(nyse_h)
+
+        # out of the two first whiles
         print("The day is ended!\n")
-        print("FINAL PROFIT / LOSS:", pm.compute_profit(portfolio, init_capital), '\n')
+        if today_we_traded:
+            print("FINAL PROFIT / LOSS:", pm.compute_profit(portfolio, init_capital), '\n')
+
+
+
 
 
 if __name__ == "__main__":

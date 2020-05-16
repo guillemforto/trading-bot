@@ -59,12 +59,10 @@ def send_email(portfolio, profitloss_flt):
     # Message
     msg = MIMEMultipart()
         # body
-    ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
-    portname = str(ny_now.year) + '-' + str(ny_now.month) + '-' + str(ny_now.day)
     msg_template = read_template('message.txt')
-    purchased_dico = portfolio[portname]['bought']
-    owned_dico = portfolio[portname]['owned']
-    sold_dico = portfolio[portname]['sold']
+    purchased_dico = portfolio['bought']
+    owned_dico = portfolio['owned']
+    sold_dico = portfolio['sold']
     body = substitute_in_msg(   message_template = msg_template,
                                 purchased = purchased_dico,
                                 owned = owned_dico,
