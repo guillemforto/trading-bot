@@ -9,13 +9,7 @@ To launch it via Terminal:
 
 ### GLOBAL ENV ###
 from globalenv import *
-
-    # modules #
-import time_management as tm
-import data_retrieval as dr
-import portfolio_management as pm
-import strategy as strat
-import mailing
+import globalenv
 
 
 ### GLOBAL VARS ###
@@ -23,10 +17,11 @@ portfolio = {"bought": dict(), "owned":dict(), "sold":dict()}
 stoploss_orders = dict()
 halfprofit_orders = dict()
 
-
 def main():
     print("\n\n\n                  WELCOME TO GUILLEM'S TRADING BOT! \n\n\n")
+    init_capital = np.float(input("What's your initial investment for this simulation (in $)?\n> "))
     nb_days = np.float(input("During how many trading days would you like to run the bot?\n> "))
+    print('')
     ith_day = 1
     while ith_day <= nb_days:
 
@@ -47,7 +42,7 @@ def main():
                 print(hours_till_op, 'h', minutes_till_op, 'mins to go', sep='')
             time.sleep(1)
             startTrading = secs_till_op == 0
-            startTrading = True
+            # startTrading = True
 
 
         ### TRADING ###
@@ -106,7 +101,7 @@ def main():
                     print('Nothing to buy.\n')
 
                 if any(golong_booleans) or any(coverlong_booleans):
-                    curr_proloss = pm.compute_profit(portfolio)
+                    curr_proloss = pm.compute_profit(portfolio, init_capital)
                     print("Our current profit / loss is:", curr_proloss, '€')
                     mailing.send_email(portfolio, profitloss_flt = curr_proloss)
 
@@ -120,7 +115,7 @@ def main():
         # out of the two first whiles
         print("The day is ended!\n")
         if today_we_traded:
-            print("FINAL PROFIT / LOSS:", pm.compute_profit(portfolio), '\n')
+            print("FINAL PROFIT / LOSS:", pm.compute_profit(portfolio, init_capital), '\n')
 
 
 

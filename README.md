@@ -2,7 +2,7 @@
 -----
 
 This is the repository for all of the bot code. Once launched, it will wait till market opens and start intra-day trading on a selection of NYSE-listed stocks.
-Buying and selling decisions are based on the supports and resistances found.
+Buying and selling decisions are based on the supports and resistances found over last year's price curve.
 
 ## Installation of libraries
 You'll need Python 3 installed with pip. Here is a non-exhaustive list of dependencies you might want to install:

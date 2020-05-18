@@ -4,6 +4,7 @@
 
 ### IMPORTATION ###
 import globalenv
+from globalenv import *
 import supres as supres
 
 
@@ -20,7 +21,7 @@ def get_PERatio(symbol):
 def get_equities_table():
     PERatio = []
     print("Getting PE Ratios...")
-    for symbol in tqdm(globalenv.real_time_tickers):
+    for symbol in tqdm.tqdm(globalenv.real_time_tickers):
         PERatio.append(get_PERatio(symbol))
         time.sleep(0.5)
 

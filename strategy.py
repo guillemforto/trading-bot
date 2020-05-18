@@ -3,6 +3,7 @@
 ########################################################
 
 ### IMPORTATION ###
+import globalenv
 from globalenv import *
 # import pattern_detection as patdet
 
