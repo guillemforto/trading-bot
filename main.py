@@ -1,5 +1,5 @@
 """
-TRADING BOT - 04 / 2020 (confinement period)
+TRADING BOT - April 2020
 
 @author: guillemforto
 To launch it via Terminal:
@@ -15,6 +15,7 @@ import time_management as tm
 import data_retrieval as dr
 import portfolio_management as pm
 import strategy as strat
+import mailing
 
 
 ### GLOBAL VARS ###
@@ -105,7 +106,7 @@ def main():
                     print('Nothing to buy.\n')
 
                 if any(golong_booleans) or any(coverlong_booleans):
-                    curr_proloss = pm.compute_profit(portfolio, init_capital)
+                    curr_proloss = pm.compute_profit(portfolio)
                     print("Our current profit / loss is:", curr_proloss, '€')
                     mailing.send_email(portfolio, profitloss_flt = curr_proloss)
 
@@ -119,7 +120,7 @@ def main():
         # out of the two first whiles
         print("The day is ended!\n")
         if today_we_traded:
-            print("FINAL PROFIT / LOSS:", pm.compute_profit(portfolio, init_capital), '\n')
+            print("FINAL PROFIT / LOSS:", pm.compute_profit(portfolio), '\n')
 
 
 

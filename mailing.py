@@ -2,32 +2,8 @@
 ####################### MAILING ########################
 ########################################################
 
-
-### FUNCTIONS###
-
-# def get_contacts(filename):
-#     """Reads each line of contacts file,
-#     and returns a tuple with the list of names and the list of email addresses"""
-#     names = []
-#     emails = []
-#     with open(filename, mode='r', encoding='utf-8') as contacts_file:
-#         for a_contact in contacts_file:
-#             names.append(a_contact.split()[0])
-#             emails.append(a_contact.split()[1])
-#     return names, emails
-
-# names, emails = get_contacts('mycontacts.txt')
-
 ### PACKAGES ###
-from globalenv import *
-
-### GLOBAL ENV ###
-timezone = pytz.timezone("America/New_York")
-
-smtp_server = "smtp.gmail.com"
-sender_email = "tradingbot.guillem@gmail.com"
-password = 'cekqer-2hyPsu-nerrev'
-receiver_email = "gforto@gmail.com"
+import globalenv
 
 
 ### FUNCTIONS ###
@@ -38,7 +14,7 @@ def read_template(filename):
 
 
 def substitute_in_msg(message_template, purchased, owned='/', sold='/', profitloss=0):
-    now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
+    now = pytz.utc.localize(datetime.utcnow()).astimezone(globalenv.timezone)
     hour = str(now.hour) + ':' + str(now.minute) + ':' + str(now.second)
     day = str(now.day) + '/' + str(now.month) + '/' + str(now.year)
     message = message_template.substitute(  current_hour = hour,
@@ -53,8 +29,8 @@ def substitute_in_msg(message_template, purchased, owned='/', sold='/', profitlo
 def send_email(portfolio, profitloss_flt):
     # Set up the SMTP server
     context = ssl.create_default_context()
-    s = smtplib.SMTP_SSL(smtp_server, port = 465, context=context)
-    s.login(sender_email, password)
+    s = smtplib.SMTP_SSL(globalenv.smtp_server, port = 465, context=context)
+    s.login(globalenv.sender_email, globalenv.password)
 
     # Message
     msg = MIMEMultipart()
@@ -69,8 +45,8 @@ def send_email(portfolio, profitloss_flt):
                                 sold = sold_dico,
                                 profitloss = profitloss_flt)
         # parameters
-    msg['From'] = sender_email
-    msg['To'] = receiver_email
+    msg['From'] = globalenv.sender_email
+    msg['To'] = globalenv.receiver_email
     msg['Subject'] = "Trading bot"
     msg.attach(MIMEText(body, 'plain'))
         # send the message via the server set up earlier.

@@ -21,17 +21,9 @@ from matplotlib.pyplot import figure
 import matplotlib.pyplot as plt
 
 
-### GLOBAL ENV ###
-key = '0FA4MXDSORI7KI96'
-ts = TimeSeries(key, output_format='pandas')
-ti = TechIndicators(key, output_format='pandas')
-
-timezone = pytz.timezone("America/New_York")
-
-
 ### FUNCTIONS ###
 def subselect_intraday(data):
-    ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
+    ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(globalenv.timezone)
     subset = data[data.index.day == ny_now.day]
     return(subset)
 
@@ -46,7 +38,7 @@ def simple_plot(data):
 
 
 # Get the data, returns a tuple
-prices, meta_data = ts.get_intraday(symbol='ZM', interval='1min', outputsize='full')
+prices, meta_data = globalenv.ts.get_intraday(symbol='ZM', interval='1min', outputsize='full')
 
 #prices.sort_index(inplace=True)
 prices = prices[prices.index.day == 1]
@@ -61,7 +53,7 @@ simple_plot(prices)
 
 
 # Bolinger bands
-data, meta_data = ti.get_bbands(symbol='ZM', interval='1min', time_period=20)
+data, meta_data = globalenv.ti.get_bbands(symbol='ZM', interval='1min', time_period=20)
 data = data[data.index.day == 1]
 data = data[data.index.hour >= 14]
 data = data[data.index.hour < 15]
@@ -77,7 +69,7 @@ plt.show()
 
 
 # SMA
-data, meta_data = ti.get_sma(symbol='ZM', interval='1min', time_period=200, series_type='close')
+data, meta_data = globalenv.ti.get_sma(symbol='ZM', interval='1min', time_period=200, series_type='close')
 data = data[data.index.day == 1]
 data = data[data.index.hour >= 14]
 data = data[data.index.hour < 15]
@@ -109,7 +101,7 @@ detect_trend(prices, data)
 
 
 # macd
-macd, meta_macd = ti.get_macd(symbol='ZM', interval='1min', series_type='close')
+macd, meta_macd = globalenv.ti.get_macd(symbol='ZM', interval='1min', series_type='close')
 macd = macd[macd.index.day == 1]
 macd = macd[macd.index.hour >= 14]
 macd = macd[macd.index.hour < 15]
@@ -132,7 +124,7 @@ detect_momentum(macd.MACD)
 
 
 # RSI
-rsi, meta_rsi = ti.get_rsi(symbol='ZM', interval='1min', series_type='close')
+rsi, meta_rsi = globalenv.ti.get_rsi(symbol='ZM', interval='1min', series_type='close')
 rsi = rsi[rsi.index.day == 1]
 rsi = rsi[rsi.index.hour >= 14]
 rsi = rsi[rsi.index.hour < 15]

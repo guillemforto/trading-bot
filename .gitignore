@@ -1,2 +1,11 @@
-
 .DS_Store
+
+__pycache__
+
+globalenv.py
+
+pattern_detection.py
+
+LICENSE.txt
+
+git reset pattern_detection.py

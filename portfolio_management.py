@@ -3,18 +3,12 @@
 ########################################################
 
 ### IMPORTATION ###
-from globalenv import *
-
-
-### GLOBAL ENV ###
-timezone = pytz.timezone("America/New_York")
-init_capital = 1000
+import globalenv
 
 
 ### FUNCTIONS ###
-
-def qtty_shares(cl_price, init_capital, eq_symbols):
-    budget = init_capital / len(eq_symbols)
+def qtty_shares(cl_price, eq_symbols):
+    budget = globalenv.init_capital / len(eq_symbols)
     return(budget // cl_price)
 
 
@@ -34,11 +28,11 @@ def add_purchase(portfolio, index, eq_symbols, eq_data):
 
     # get the stock state using the symbol
     buy_price = eq_data['4. close'][0]
-    ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
+    ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(globalenv.timezone)
     curr_day = str(ny_now.year) + '-' + str(ny_now.month) + '-' + str(ny_now.day)
     purchase_chars = {  'name':     symbol,
                         'close':    buy_price,
-                        'quantity': qtty_shares(buy_price, init_capital, eq_symbols),
+                        'quantity': qtty_shares(buy_price, eq_symbols),
                         'day':      curr_day,
                         'high':     eq_data['2. high'][0],
                         'low':      eq_data['3. low'][0],
@@ -64,11 +58,11 @@ def add_sale(portfolio, index, eq_symbols, eq_data):
 
     # get the stock state using the symbol
     sell_price = eq_data['4. close'][0]
-    ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
+    ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(globalenv.timezone)
     curr_day = str(ny_now.year) + '-' + str(ny_now.month) + '-' + str(ny_now.day)
     sale_chars = {  'name':     symbol,
                     'close':    sell_price,
-                    'quantity': qtty_shares(sell_price, init_capital, eq_symbols),
+                    'quantity': qtty_shares(sell_price, eq_symbols),
                     'day':      curr_day,
                     'high':     eq_data['2. high'][0],
                     'low':      eq_data['3. low'][0],
@@ -131,8 +125,8 @@ def place_halfprofit_orders(portfolio, halfprofit_orders, eq_symbols, eq_supres)
     return(halfprofit_orders)
 
 
-def compute_profit(portfolio, init_capital):
-    profit = init_capital
+def compute_profit(portfolio):
+    profit = globalenv.init_capital
     sold = portfolio['sold']
     bought = portfolio['bought']
     for key in sold:

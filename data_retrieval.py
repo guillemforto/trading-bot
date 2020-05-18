@@ -3,28 +3,8 @@
 ########################################################
 
 ### IMPORTATION ###
-from globalenv import *
+import globalenv
 import supres as supres
-
-    # GLOBALS VARS #
-apikey = '0FA4MXDSORI7KI96'
-ts = TimeSeries(key=apikey, output_format='pandas')
-ti = TechIndicators(key=apikey)
-
-timezone = pytz.timezone("America/New_York")
-
-real_time_tickers = {\
-    'IBM' : 'International Business Machines',  'CAT':  'Caterpillar',
-    'KO':   'Coca-cola',                        'HPQ':  'Hewlett Packard',
-    'JNJ':  'Johnson & Johnson',                'MTW':  'Manitowoc',
-    'SNAP': 'Snapchat',                         'MO':   'Altria',
-    'FCX':  'Freeport',                         'HLF':  'Herbalife',
-    'PRGO': 'Perrigo',                          'BABA': 'Alibaba',
-    'JPM':  'JPMorgan',                         'V':    'Visa Inc.',
-    'WMT':  'Walmart Inc.',                     'XOM':  'Exxon Mobil',
-    'BAC':  'Bank of America',                  'PG':   'The Procter & Gamble Co',
-    'T':    'AT&T',                             'MA':   'Mastercard',
-    'ANF':  'Abercrombie & Fitch',              'ACN':   'Accenture'}
 
 
 ### FUNCTIONS ###
@@ -40,11 +20,11 @@ def get_PERatio(symbol):
 def get_equities_table():
     PERatio = []
     print("Getting PE Ratios...")
-    for symbol in tqdm(real_time_tickers):
+    for symbol in tqdm(globalenv.real_time_tickers):
         PERatio.append(get_PERatio(symbol))
         time.sleep(0.5)
 
-    equities_table = pd.DataFrame(real_time_tickers.items(), columns=['Symbol', 'Name'])
+    equities_table = pd.DataFrame(globalenv.real_time_tickers.items(), columns=['Symbol', 'Name'])
     equities_table['PE Ratio (TTM)'] = PERatio
     print('Done!')
     return(equities_table)
@@ -52,7 +32,6 @@ def get_equities_table():
 
 def get_candidate_equities():
     table = get_equities_table()
-    # table = pd.read_html(requests.get(url).content)[0]
 
     # Low PER: Q1 < PE ratio (TTM) < Q2
     table = table[~table['PE Ratio (TTM)'].isna()]
@@ -76,8 +55,6 @@ def get_candidate_equities():
     candidates_table.reset_index(inplace=True, drop=True)
     return(candidates_table)
 
-# url = 'https://www.investing.com/stock-screener/?sp=country::5|sector::a|industry::a|equityType::a|exchange::1|eq_market_cap::1500000,1390000000000|pair_change_percent::1,1000%3Ceq_market_cap;1'
-# candidates_table = get_candidate_equities()
 
 def select_top_gainer(candidates_table):
     top_gainer = candidates_table['Symbol'][0]
@@ -89,9 +66,9 @@ def select_top_gainer(candidates_table):
 
 def get_1_equity_data(symbol):
     print("> Trying to get/update data for", symbol)
-    data, meta_data = ts.get_intraday(symbol=symbol, interval='1min', outputsize='compact')
+    data, meta_data = globalenv.ts.get_intraday(symbol=symbol, interval='1min', outputsize='compact')
     data.sort_index(inplace=True)
-    ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
+    ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(globalenv.timezone)
     # data = data[data.index.day == 8] # subset to intraday prices
     data = data[data.index.day == ny_now.day] # subset to intraday prices
     return(data)
@@ -101,7 +78,7 @@ def get_1_equity_data(symbol):
 
 def is_data_available(data):
     boolean = True
-    ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(timezone)
+    ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(globalenv.timezone)
     if data.empty:
         boolean = False
     else:
