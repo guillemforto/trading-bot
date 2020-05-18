@@ -1,5 +1,4 @@
 # Trading Bot Simulator
------
 
 This is the repository for all of the bot code. Once launched, it will wait till market opens and start intra-day trading on a selection of NYSE-listed stocks.
 Buying and selling decisions are based on the supports and resistances found over last year's price curve.
