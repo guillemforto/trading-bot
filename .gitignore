@@ -3,9 +3,7 @@
 __pycache__
 
 globalenv.py
-
 pattern_detection.py
 
 LICENSE.txt
-
-git reset pattern_detection.py
+resources.txt
