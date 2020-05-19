@@ -102,7 +102,7 @@ def main():
 
                 if any(golong_booleans) or any(coverlong_booleans):
                     curr_proloss = pm.compute_profit(portfolio, init_capital)
-                    print("Our current profit / loss is:", curr_proloss, '€')
+                    print("Our current profit / loss is:", curr_proloss, '$')
                     mailing.send_email(portfolio, profitloss_flt = curr_proloss)
 
                 print('Portfolio:', portfolio)
@@ -115,7 +115,7 @@ def main():
         # out of the two first whiles
         print("The day is ended!\n")
         if today_we_traded:
-            print("FINAL PROFIT / LOSS:", pm.compute_profit(portfolio, init_capital), '\n')
+            print("FINAL PROFIT / LOSS:", pm.compute_profit(portfolio, init_capital), '$\n')
 
 
 

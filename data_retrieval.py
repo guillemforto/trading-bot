@@ -66,7 +66,7 @@ def select_top_gainer(candidates_table):
 
 
 def get_1_equity_data(symbol):
-    print("> Trying to get/update data for", symbol)
+    print("Trying to get/update data for", symbol)
     data, meta_data = globalenv.ts.get_intraday(symbol=symbol, interval='1min', outputsize='compact')
     data.sort_index(inplace=True)
     ny_now = pytz.utc.localize(datetime.utcnow()).astimezone(globalenv.timezone)

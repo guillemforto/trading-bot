@@ -64,7 +64,7 @@ def get_secs_till_op(nyse_h):
 def get_time_measures(secs_till_op):
     time_till_op = (secs_till_op / 60) / 60
     hours_till_op = int(time_till_op)
-    minutes_till_op = int((time_till_op - hours_till_op) * 60)
+    minutes_till_op = int(round((time_till_op - hours_till_op) * 60, 1))
     return hours_till_op, minutes_till_op
 
 
