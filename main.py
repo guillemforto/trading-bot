@@ -50,8 +50,8 @@ def main():
             today_we_traded = False
 
             ### PREPARATION ###
-            print("Market is open! Waiting 1 min before starting...\n")
-            # time.sleep(60)
+            print("Market is open! Waiting 2 mins before starting...\n")
+            time.sleep(120)
                 # equity selection
             print("First of all, let's pick the equities we will be looking at:")
             candidates_table = dr.get_candidate_equities()
@@ -85,6 +85,7 @@ def main():
                 print("Checking for new trading opportunities:")
                 (golong_booleans, coverlong_booleans) = \
                     strat.go_or_cover_long(eq_symbols, eq_data, eq_supres, portfolio, stoploss_orders, halfprofit_orders, requests_frequency_inmin = math.ceil(requests_frequency / 60))
+
 
                 if any(coverlong_booleans):
                     pm.add_sales(portfolio, coverlong_booleans, eq_symbols, eq_data)

@@ -19,6 +19,7 @@ from globalenv import *
 def is_moment_to_golong(index, symbol, closing_prices, support_value, margin, golong_booleans, portfolio):
     """We go long if:
     - we don't own the stock + price is close to support (i.e. if price breaches sup + margin)"""
+
     if not pm.do_we_currently_own(symbol, portfolio):
         if any([k - margin <= support_value for k in closing_prices]):
             golong_booleans[index] = True
@@ -57,15 +58,18 @@ def go_or_cover_long(eq_symbols, eq_data, eq_supres, portfolio, stoploss_orders,
     for i in range(len(eq_symbols)):
         symbol = eq_symbols[i]
         print('> Checking for ', symbol, '...', sep='')
-
-        # support and resistance values + prices
         (support_value, resistance_value, margin) = eq_supres[i]
-        # support_value = eq_supres[i][1] + eq_supres[i][0] * 250.0
-        # resistance_value = eq_supres[i][3] + eq_supres[i][2] * 250.0
-        # margin = (resistance_value - support_value) / 10
         closing_prices = eq_data[i]['4. close'].values[-requests_frequency_inmin:]
+
+        sup_dist = round(closing_prices[-1] - support_value, 2)
+        res_dist = round(resistance_value - closing_prices[-1], 2)
+        if sup_dist < res_dist:
+            print('Price - Sup: ' + globalenv.print_color['BLUE'] + str(sup_dist) + globalenv.print_color['END'] + '\nRes - Price: ' + str(res_dist), sep='')
+        else:
+            print('Price - Sup: ', sup_dist, '\n', 'Res - Price: ', res_dist, sep='')
 
         golong_booleans = is_moment_to_golong(i, symbol, closing_prices, support_value, margin, golong_booleans, portfolio)
         (coverlong_booleans, golong_booleans) = is_moment_to_coverlong(i, symbol, closing_prices, resistance_value, margin, coverlong_booleans, golong_booleans, portfolio, stoploss_orders, halfprofit_orders)
+        time.sleep(1)
 
     return((coverlong_booleans, golong_booleans))
