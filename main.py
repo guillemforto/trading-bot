@@ -51,7 +51,7 @@ def main():
 
             ### PREPARATION ###
             print("Market is open! Waiting 2 mins before starting...\n")
-            time.sleep(120)
+            time.sleep(90)
                 # equity selection
             print("First of all, let's pick the equities we will be looking at:")
             candidates_table = dr.get_candidate_equities()
@@ -96,15 +96,15 @@ def main():
                     pm.add_purchases(portfolio, golong_booleans, eq_symbols, eq_data, init_capital)
                     pm.place_stoploss_orders(portfolio, stoploss_orders, eq_symbols, eq_supres)
                     pm.place_halfprofit_orders(portfolio, halfprofit_orders, eq_symbols, eq_supres)
-                    print('stoploss_orders', stoploss_orders)
-                    print('halfprofit_orders', halfprofit_orders)
+                    print('Stoploss orders:', stoploss_orders)
+                    print('Halfprofit orders:', halfprofit_orders)
                 else:
                     print('Nothing to buy.\n')
 
                 if any(golong_booleans) or any(coverlong_booleans):
                     curr_proloss = pm.compute_profit(portfolio, init_capital)
-                    print("Our current profit / loss is:", curr_proloss, '$')
-                    mailing.send_email(portfolio, profitloss_flt = curr_proloss)
+                    print("\nOur current profit / loss is:", curr_proloss, '$\n')
+                    mailing.send_email(portfolio, curr_proloss)
 
                 print('Portfolio:', portfolio)
                 print("Done!\n")

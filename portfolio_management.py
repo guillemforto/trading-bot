@@ -24,7 +24,7 @@ def times_stock_been_traded(portfolio, operation, symbol):
 def add_purchase(portfolio, index, eq_symbols, eq_data, init_capital):
     symbol = eq_symbols[index]
     print('\nTrading opportunity detected!')
-    print("We go long on", symbol)
+    print("\n> We go long on", symbol)
     eq_data = eq_data[index].tail(1)
 
     # get the stock state using the symbol
@@ -54,7 +54,7 @@ def add_purchase(portfolio, index, eq_symbols, eq_data, init_capital):
 
 def add_sale(portfolio, index, eq_symbols, eq_data, init_capital):
     symbol = eq_symbols[index]
-    print("\nCovering long position for ", symbol, ".", sep='')
+    print("\n> Covering long position for ", symbol, ".", sep='')
     eq_data = eq_data[index].tail(1)
 
     # get the stock state using the symbol
@@ -109,7 +109,7 @@ def place_stoploss_orders(portfolio, stoploss_orders, eq_symbols, eq_supres):
     owned_symbols = [owned[key]['name'] for key in owned]
     for symbol in owned_symbols:
         index = eq_symbols.index(symbol)
-        (support_value, resistance_value, margin) = eq_supres[i]
+        (support_value, resistance_value, margin) = eq_supres[index]
         stoploss_orders[symbol] = support_value - (margin / 5)
     return(stoploss_orders)
 
@@ -121,7 +121,7 @@ def place_halfprofit_orders(portfolio, halfprofit_orders, eq_symbols, eq_supres)
     owned_symbols = [owned[key]['name'] for key in owned]
     for symbol in owned_symbols:
         index = eq_symbols.index(symbol)
-        (support_value, resistance_value, margin) = eq_supres[i]
+        (support_value, resistance_value, margin) = eq_supres[index]
         halfprofit_orders[symbol] = (support_value + resistance_value) / 2
     return(halfprofit_orders)
 
@@ -130,11 +130,13 @@ def compute_profit(portfolio, init_capital):
     profit = init_capital
     sold = portfolio['sold']
     bought = portfolio['bought']
+    for key in bought:
+        close_bought = bought[key]['close']
+        quantity_bought = bought[key]['quantity']
+        profit -= close_bought * quantity_bought
     for key in sold:
-        if key in bought.keys():
-            close_sold = sold[key]['close']
-            quantity_sold = sold[key]['quantity']
-            close_bought = bought[key]['close']
-            quantity_bought = bought[symbol]['quantity']
-            profit += (quantity_sold * close_sold - quantity_bought * close_bought)
+        close_sold = sold[key]['close']
+        quantity_sold = sold[key]['quantity']
+        profit += quantity_sold * close_sold
+
     return(round(profit, 2))

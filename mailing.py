@@ -4,6 +4,7 @@
 
 ### PACKAGES ###
 import globalenv
+from globalenv import *
 
 
 ### FUNCTIONS ###
@@ -13,7 +14,7 @@ def read_template(filename):
     return Template(template_file_content)
 
 
-def substitute_in_msg(message_template, purchased, owned='/', sold='/', profitloss=0):
+def substitute_in_msg(message_template, purchased, profitloss, owned='/', sold='/'):
     now = pytz.utc.localize(datetime.utcnow()).astimezone(globalenv.timezone)
     hour = str(now.hour) + ':' + str(now.minute) + ':' + str(now.second)
     day = str(now.day) + '/' + str(now.month) + '/' + str(now.year)
@@ -35,15 +36,15 @@ def send_email(portfolio, profitloss_flt):
     # Message
     msg = MIMEMultipart()
         # body
-    msg_template = read_template('message.txt')
+    msg_template = read_template('/Users/guillemforto/Desktop/trading-bot/message.txt') # message.txt
     purchased_dico = portfolio['bought']
     owned_dico = portfolio['owned']
     sold_dico = portfolio['sold']
     body = substitute_in_msg(   message_template = msg_template,
                                 purchased = purchased_dico,
+                                profitloss = profitloss_flt,
                                 owned = owned_dico,
-                                sold = sold_dico,
-                                profitloss = profitloss_flt)
+                                sold = sold_dico)
         # parameters
     msg['From'] = globalenv.sender_email
     msg['To'] = globalenv.receiver_email

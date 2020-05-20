@@ -1,5 +1,9 @@
-Time: ${current_hour} - ${current_day}
+New York Time: ${current_hour} - ${current_day}
+
 - Purchased: ${purchased_tickers}
+
 - Owned: ${owned_tickers}
+
 - Sold: ${sold_tickers}
-- Current profit-loss: ${current_profitloss} €
+
+- Current profit-loss: ${current_profitloss}
