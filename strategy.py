@@ -24,7 +24,7 @@ def is_moment_to_golong(index, symbol, closing_prices, support_value, margin, go
         if any([k - margin <= support_value for k in closing_prices]):
             golong_booleans[index] = True
             print('- Last closing prices:', closing_prices)
-            print("- Today's (support + margin) value:", round(support_value + margin, 2), '\n')
+            print("- Today's (support + margin) value:", round(support_value + margin, 2))
     return(golong_booleans)
 
 
@@ -37,7 +37,7 @@ def is_moment_to_coverlong(index, symbol, closing_prices, resistance_value, marg
         if any([k + margin >= resistance_value for k in closing_prices]):
             coverlong_booleans[index] = True
             print('- Last closing prices:', closing_prices)
-            print("- Today's (resistance - margin) values:", round(resistance_value - margin, 2), '\n')
+            print("- Today's (resistance - margin) values:", round(resistance_value - margin, 2))
         elif any([k <= stoploss_orders[symbol] for k in closing_prices]):
             coverlong_booleans[index] = True
             print('- Last closing prices:', closing_prices)
@@ -57,16 +57,16 @@ def go_or_cover_long(eq_symbols, eq_data, eq_supres, portfolio, stoploss_orders,
 
     for i in range(len(eq_symbols)):
         symbol = eq_symbols[i]
-        print('> Checking for ', symbol, '...', sep='')
+        print('\n> Checking for ', symbol, ':', sep='')
         (support_value, resistance_value, margin) = eq_supres[i]
         closing_prices = eq_data[i]['4. close'].values[-requests_frequency_inmin:]
 
         sup_dist = round(closing_prices[-1] - support_value, 2)
         res_dist = round(resistance_value - closing_prices[-1], 2)
         if sup_dist < res_dist:
-            print('Price - Sup: ' + globalenv.print_color['BLUE'] + str(sup_dist) + globalenv.print_color['END'] + '\nRes - Price: ' + str(res_dist), sep='')
+            print('Price - Sup: ' + globalenv.print_color['CYAN'] + str(sup_dist) + globalenv.print_color['END'] + '\nRes - Price: ' + str(res_dist) + '\nmargin: ' + str(margin), sep='')
         else:
-            print('Price - Sup: ', sup_dist, '\n', 'Res - Price: ', res_dist, sep='')
+            print('Price - Sup: ', sup_dist, '\n', 'Res - Price: ', res_dist + '\nmargin: ' + str(margin), sep='')
 
         golong_booleans = is_moment_to_golong(i, symbol, closing_prices, support_value, margin, golong_booleans, portfolio)
         (coverlong_booleans, golong_booleans) = is_moment_to_coverlong(i, symbol, closing_prices, resistance_value, margin, coverlong_booleans, golong_booleans, portfolio, stoploss_orders, halfprofit_orders)

@@ -88,12 +88,12 @@ def main():
 
 
                 if any(coverlong_booleans):
-                    pm.add_sales(portfolio, coverlong_booleans, eq_symbols, eq_data)
+                    pm.add_sales(portfolio, coverlong_booleans, eq_symbols, eq_data, init_capital)
                 else:
                     print('\nNothing to sell.')
 
                 if any(golong_booleans):
-                    pm.add_purchases(portfolio, golong_booleans, eq_symbols, eq_data)
+                    pm.add_purchases(portfolio, golong_booleans, eq_symbols, eq_data, init_capital)
                     pm.place_stoploss_orders(portfolio, stoploss_orders, eq_symbols, eq_supres)
                     pm.place_halfprofit_orders(portfolio, halfprofit_orders, eq_symbols, eq_supres)
                     print('stoploss_orders', stoploss_orders)

@@ -21,7 +21,7 @@ def times_stock_been_traded(portfolio, operation, symbol):
     return(ith_time_bought)
 
 
-def add_purchase(portfolio, index, eq_symbols, eq_data):
+def add_purchase(portfolio, index, eq_symbols, eq_data, init_capital):
     symbol = eq_symbols[index]
     print('\nTrading opportunity detected!')
     print("We go long on", symbol)
@@ -52,7 +52,7 @@ def add_purchase(portfolio, index, eq_symbols, eq_data):
     return(portfolio)
 
 
-def add_sale(portfolio, index, eq_symbols, eq_data):
+def add_sale(portfolio, index, eq_symbols, eq_data, init_capital):
     symbol = eq_symbols[index]
     print("\nCovering long position for ", symbol, ".", sep='')
     eq_data = eq_data[index].tail(1)
@@ -82,16 +82,16 @@ def add_sale(portfolio, index, eq_symbols, eq_data):
     return(portfolio)
 
 
-def add_purchases(portfolio, booleans, eq_symbols, eq_data):
+def add_purchases(portfolio, booleans, eq_symbols, eq_data, init_capital):
     indexes_to_purchase = [i for i in range(len(booleans)) if booleans[i] == True]
     for index in indexes_to_purchase:
-        add_purchase(portfolio, index, eq_symbols, eq_data)
+        add_purchase(portfolio, index, eq_symbols, eq_data, init_capital)
 
 
-def add_sales(portfolio, booleans, eq_symbols, eq_data):
+def add_sales(portfolio, booleans, eq_symbols, eq_data, init_capital):
     indexes_to_purchase = [i for i in range(len(booleans)) if booleans[i] == True]
     for index in indexes_to_purchase:
-        add_sale(portfolio, index, eq_symbols, eq_data)
+        add_sale(portfolio, index, eq_symbols, eq_data, init_capital)
 
 
 def do_we_currently_own(symbol, portfolio):
