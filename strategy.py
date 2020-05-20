@@ -64,9 +64,9 @@ def go_or_cover_long(eq_symbols, eq_data, eq_supres, portfolio, stoploss_orders,
         sup_dist = round(closing_prices[-1] - support_value, 2)
         res_dist = round(resistance_value - closing_prices[-1], 2)
         if sup_dist < res_dist:
-            print('Price - Sup: ' + globalenv.print_color['CYAN'] + str(sup_dist) + globalenv.print_color['END'] + '\nRes - Price: ' + str(res_dist) + '\nmargin: ' + str(margin), sep='')
+            print('Price - Sup: ' + globalenv.print_color['CYAN'] + str(sup_dist) + globalenv.print_color['END'] + '\nRes - Price: ' + str(res_dist) + '\nMargin: ' + str(round(margin, 2)), sep='')
         else:
-            print('Price - Sup: ', sup_dist, '\n', 'Res - Price: ', res_dist + '\nmargin: ' + str(margin), sep='')
+            print('Price - Sup: ', sup_dist, '\n', 'Res - Price: ', res_dist, '\n', 'Margin: ', str(round(margin, 2)), sep='')
 
         golong_booleans = is_moment_to_golong(i, symbol, closing_prices, support_value, margin, golong_booleans, portfolio)
         (coverlong_booleans, golong_booleans) = is_moment_to_coverlong(i, symbol, closing_prices, resistance_value, margin, coverlong_booleans, golong_booleans, portfolio, stoploss_orders, halfprofit_orders)

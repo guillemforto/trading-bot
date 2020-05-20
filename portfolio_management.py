@@ -82,15 +82,15 @@ def add_sale(portfolio, index, eq_symbols, eq_data, init_capital):
     return(portfolio)
 
 
-def add_purchases(portfolio, booleans, eq_symbols, eq_data, init_capital):
-    indexes_to_purchase = [i for i in range(len(booleans)) if booleans[i] == True]
+def add_purchases(portfolio, golong_booleans, eq_symbols, eq_data, init_capital):
+    indexes_to_purchase = [i for i in range(len(golong_booleans)) if golong_booleans[i] == True]
     for index in indexes_to_purchase:
         add_purchase(portfolio, index, eq_symbols, eq_data, init_capital)
 
 
-def add_sales(portfolio, booleans, eq_symbols, eq_data, init_capital):
-    indexes_to_purchase = [i for i in range(len(booleans)) if booleans[i] == True]
-    for index in indexes_to_purchase:
+def add_sales(portfolio, coverlong_booleans, eq_symbols, eq_data, init_capital):
+    indexes_to_sale = [i for i in range(len(coverlong_booleans)) if coverlong_booleans[i] == True]
+    for index in indexes_to_sale:
         add_sale(portfolio, index, eq_symbols, eq_data, init_capital)
 
 

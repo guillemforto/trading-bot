@@ -83,7 +83,7 @@ def main():
                     break
 
                 print("Checking for new trading opportunities:")
-                (golong_booleans, coverlong_booleans) = \
+                (coverlong_booleans, golong_booleans) = \
                     strat.go_or_cover_long(eq_symbols, eq_data, eq_supres, portfolio, stoploss_orders, halfprofit_orders, requests_frequency_inmin = math.ceil(requests_frequency / 60))
 
 
