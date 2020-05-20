@@ -107,7 +107,7 @@ def main():
                     mailing.send_email(portfolio, curr_proloss)
 
                 print('Portfolio:', portfolio)
-                print("Done!\n")
+                print(globalenv.print_color['YELLOW'] + 'Done!' + globalenv.print_color['END'] + '\n')
                 action = tm.is_market_open(nyse_h)
 
 
