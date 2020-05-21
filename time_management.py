@@ -12,13 +12,15 @@ def get_next_trading_hours():
     one_day = timedelta(days=1)
     holidays_us = holidays.US()
 
-    # Are we in a weekend? Are we in a holiday?
+    # Are we in a weekend? Are we in a holiday? Are we between trading days?
     boolean = True
     if ny_now.weekday() in holidays.WEEKEND:
         print("Today is ", calendar.day_name[ny_now.weekday()], " the ",
-        ny_now.day, "th, New York timezone. Markets are closed.", sep="")
+        ny_now.day, "th, New York timezone. Markets are closed on weekends.", sep="")
     elif ny_now in holidays_us:
         print("Today is a holiday. Markets are closed.")
+    elif ny_now.hour >= 16 and ny_now.weekday() != 4:
+        print("Tomorrow is a trading day!")
     else:
         boolean = False
         print("Today is a trading day!")

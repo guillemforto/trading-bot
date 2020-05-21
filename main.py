@@ -3,7 +3,7 @@ TRADING BOT - April 2020
 
 @author: guillemforto
 To launch it via Terminal:
-    > cd /Users/guillemforto/Desktop/trading-bot
+    > cd /Users/guillemforto/github/trading-bot
     > python main.py
 """
 
@@ -117,7 +117,7 @@ def main():
         print("The day is ended!\n")
         if today_we_traded:
             print("FINAL PROFIT / LOSS:", pm.compute_profit(portfolio, init_capital), '$\n')
-
+            time.sleep(10)
 
 
 
