@@ -30,8 +30,8 @@ def substitute_in_msg(message_template, purchased, profitloss, owned='/', sold='
 def send_email(portfolio, profitloss_flt):
     # Set up the SMTP server
     context = ssl.create_default_context()
-    s = smtplib.SMTP_SSL(globalenv.smtp_server, port = 465, context=context)
-    s.login(globalenv.sender_email, globalenv.password)
+    s = smtplib.SMTP_SSL(usersettings.smtp_server, port = 465, context=context)
+    s.login(usersettings.sender_email, usersettings.password)
 
     # Message
     msg = MIMEMultipart()
@@ -46,8 +46,8 @@ def send_email(portfolio, profitloss_flt):
                                 owned = owned_dico,
                                 sold = sold_dico)
         # parameters
-    msg['From'] = globalenv.sender_email
-    msg['To'] = globalenv.receiver_email
+    msg['From'] = usersettings.sender_email
+    msg['To'] = usersettings.receiver_email
     msg['Subject'] = "Trading bot"
     msg.attach(MIMEText(body, 'plain'))
         # send the message via the server set up earlier.

@@ -13,7 +13,7 @@ import globalenv
 
 
 ### GLOBAL VARS ###
-portfolio = {"bought": dict(), "owned":dict(), "sold":dict()}
+portfolio = {"bought": dict(), "owned": dict(), "sold": dict()}
 stoploss_orders = dict()
 halfprofit_orders = dict()
 
@@ -53,9 +53,10 @@ def main():
             print("Market is open! Waiting 2 mins before starting...\n")
             time.sleep(90)
                 # equity selection
-            print("First of all, let's pick the equities we will be looking at:")
-            candidates_table = dr.get_candidate_equities()
-            (eq_symbols, eq_data, eq_supres) = dr.get_5_equities_data(candidates_table)
+            if ith_day == 1:
+                print("First of all, let's pick the equities we will be looking at:")
+                candidates_table = dr.get_candidate_equities()
+                (eq_symbols, eq_data, eq_supres) = dr.get_5_equities_data(candidates_table)
 
             if len(eq_symbols) != 0:
                 today_we_traded = True

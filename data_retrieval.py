@@ -74,7 +74,7 @@ def get_1_equity_data(symbol):
     data = data[data.index.day == ny_now.day] # subset to intraday prices
     return(data)
 
-# data, meta_data = ts.get_intraday(symbol="BIO", interval='1min', outputsize='compact')
+# data, meta_data = ts.get_intraday(symbol="CBL", interval='1min', outputsize='compact')
 # data
 
 def is_data_available(data):
