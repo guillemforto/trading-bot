@@ -45,7 +45,7 @@ import mailing
 
 ### CONSTANT GLOBAL VARIABLES ###
     # alphavantage
-from usersettings import *
+import usersettings
 ts = TimeSeries(key=usersettings.apikey, output_format='pandas')
 ti = TechIndicators(key=usersettings.apikey)
 
