@@ -20,11 +20,10 @@ halfprofit_orders = dict()
 def main():
     print("\n\n\n                  WELCOME TO GUILLEM'S TRADING BOT! \n\n\n")
     init_capital = np.float(input("What's your initial investment for this simulation (in $)?\n> "))
-    nb_days = np.float(input("During how many trading days would you like to run the bot?\n> "))
+    nb_days = int(input("During how many trading days would you like to run the bot?\n> "))
     print('')
     ith_day = 1
     while ith_day <= nb_days:
-
         ### PRE-trading ###
         nyse_h = tm.get_next_trading_hours()
         startTrading = tm.is_market_open(nyse_h)
@@ -37,17 +36,18 @@ def main():
 
         while startTrading == False:
             secs_till_op = tm.get_secs_till_op(nyse_h)
-            if secs_till_op % 300 == 0 and secs_till_op != 0:
+            if secs_till_op % 600 == 0 and startTrading == False:
                 hours_till_op, minutes_till_op = tm.get_time_measures(secs_till_op)
                 print(hours_till_op, 'h', minutes_till_op, 'mins to go', sep='')
             time.sleep(1)
-            startTrading = secs_till_op == 0
+            startTrading = tm.is_market_open(nyse_h)
             # startTrading = True
 
 
         ### TRADING ###
         while startTrading == True:
             today_we_traded = False
+            print("Today is day ", ith_day, " out of ", nb_days, '.', sep='')
 
             ### PREPARATION ###
             print("Market is open! Waiting 2 mins before starting...\n")
