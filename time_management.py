@@ -19,8 +19,8 @@ def get_next_trading_hours():
         ny_now.day, "th, New York timezone. Markets are closed on weekends.", sep="")
     elif ny_now in holidays_us:
         print("Today is a holiday. Markets are closed.")
-    elif ny_now.hour >= 16 and ny_now.weekday() != 4:
-        print("Tomorrow is a trading day!")
+    elif ny_now.hour >= 16:
+        print("Markets have closed for today. Wait till next business day.")
     else:
         boolean = False
         print("Today is a trading day!")

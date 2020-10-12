@@ -41,7 +41,6 @@ def main():
                 print(hours_till_op, 'h', minutes_till_op, 'mins to go', sep='')
             time.sleep(1)
             startTrading = tm.is_market_open(nyse_h)
-            # startTrading = True
 
 
         ### TRADING ###
@@ -115,10 +114,13 @@ def main():
             startTrading = tm.is_market_open(nyse_h)
 
         # out of the two first whiles
-        print("The day is ended!\n")
+        print("The day has ended!\n")
         if today_we_traded:
             print("FINAL PROFIT / LOSS:", pm.compute_profit(portfolio, init_capital), '$\n')
             time.sleep(10)
+        else:
+            print("Today we couldn't trade. We will wait till the end of the day.")
+            time.sleep(23400)
 
 
 
